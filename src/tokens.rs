@@ -1,5 +1,6 @@
 use std::ops::ControlFlow;
 use regex::Regex;
+use crate::tokens::TokenType::{Identifier, Literal, Symbol};
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum TokenType {
@@ -13,39 +14,23 @@ pub(crate) struct Token {
     pub(crate) raw_value: String,
 }
 
-
 pub(crate) struct Tokenizer {}
 impl Tokenizer {
-    fn extract_from_regex(token_type: TokenType, regex: Regex, chunk: &str) -> Option<Token> {
-        match regex.find(chunk) {
-            Some(matched) => Some(Token {
-                token_type,
-                raw_value: matched.as_str().into()
-            }),
-            None => None,
+    fn extract_from_regexs(chunk: &str) -> Option<Token> {
+        let regexs = [(Symbol, Regex::new(r"^[+-/*)(^]").unwrap()), (Literal, Regex::new(r"^\d+").unwrap()), (Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap())];
+        for r in regexs {
+            if let Some(res) = r.1.find(chunk) {
+                return Some(Token {
+                    token_type: r.0,
+                    raw_value: res.as_str().into()
+                })
+            }
         }
-    }
-    fn extract_symbol_from_chunk(chunk: &str) -> Option<Token> {
-        let symbol_regex = Regex::new(r"^[+-/*)(^]").unwrap();
-        Self::extract_from_regex(TokenType::Symbol, symbol_regex, chunk)
-    }
-
-    fn extract_literal_from_chunk(chunk: &str) -> Option<Token> {
-        let literal_regex = Regex::new(r"^\d+").unwrap();
-        Self::extract_from_regex(TokenType::Literal, literal_regex, chunk)
-    }
-
-    fn extract_identifier_from_chunk(chunk: &str) -> Option<Token> {
-        let identifier_regex = Regex::new(r"^[a-zA-Z_]+").unwrap();
-        Self::extract_from_regex(TokenType::Identifier, identifier_regex, chunk)
+        return None;
     }
 
     fn extract_next_token(chunk: &str) -> Result<Token, String> {
-        if let Some(token) = Self::extract_symbol_from_chunk(chunk) {
-            return Ok(token);
-        } else if let Some(token) = Self::extract_literal_from_chunk(chunk) {
-            return Ok(token);
-        } else if let Some(token) = Self::extract_identifier_from_chunk(chunk) {
+        if let Some(token) = Self::extract_from_regexs(chunk) {
             return Ok(token);
         } else {
             Err(format!("Couldn't extract next token! current line analysis state: {}", chunk))
