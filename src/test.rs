@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod tokenizer {
-    use crate::{Token, Tokenizer, TokenType};
-    use crate::{Literal, Symbol};
-    use crate::TokenType::Identifier;
+    use crate::tokens::{Token, Tokenizer};
+    use crate::tokens::TokenType::{Identifier, Literal, Symbol};
 
     #[test]
     fn tokenize_1_plus_2() {
@@ -17,7 +16,7 @@ mod tokenizer {
             token_type: Literal,
             raw_value: "2".into(),
         }];
-        assert_eq!(wanted_sequence, Tokenizer::tokenize_line(sample_string.into()));
+        assert_eq!(wanted_sequence, Tokenizer::tokenize_line(sample_string.into()).unwrap());
     }
 
     #[test]
@@ -40,7 +39,7 @@ mod tokenizer {
             Token { token_type: Literal, raw_value: "4".into() },
 
         ];
-        assert_eq!(wanted_sequence, Tokenizer::tokenize_line(sample_string.into()));
+        assert_eq!(wanted_sequence, Tokenizer::tokenize_line(sample_string.into()).unwrap());
     }
 
 }
