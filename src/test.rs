@@ -1,45 +1,37 @@
 #[cfg(test)]
-mod tokenizer {
-    use crate::tokens::{Token, Tokenizer};
-    use crate::tokens::TokenType::{Identifier, Literal, Symbol};
+mod lexer {
+    use crate::lexer;
+    use crate::lexer::token::Kind::{Identifier, Literal, Operator, Separator};
+    use crate::lexer::token::Token;
 
     #[test]
-    fn tokenize_1_plus_2() {
-        let sample_string = "1 + 2";
-        let wanted_sequence = vec![Token {
-            token_type: Literal,
-            raw_value: "1".into(),
-        }, Token {
-            token_type: Symbol,
-            raw_value: "+".into(),
-        }, Token {
-            token_type: Literal,
-            raw_value: "2".into(),
-        }];
-        assert_eq!(wanted_sequence, Tokenizer::tokenize_line(sample_string.into()).unwrap());
+    fn lex_returns_result() {
+        assert_eq!(lexer::lex("".into()), Ok(Vec::new()))
     }
 
     #[test]
-    fn no_whitespace() {
-        let sample_string = "1+1*4(2+a)/2^4";
-        let wanted_sequence = vec![
-            Token { token_type: Literal, raw_value: "1".into() },
-            Token { token_type: Symbol, raw_value: "+".into() },
-            Token { token_type: Literal, raw_value: "1".into() },
-            Token { token_type: Symbol, raw_value: "*".into() },
-            Token { token_type: Literal, raw_value: "4".into() },
-            Token { token_type: Symbol, raw_value: "(".into() },
-            Token { token_type: Literal, raw_value: "2".into() },
-            Token { token_type: Symbol, raw_value: "+".into() },
-            Token { token_type: Identifier, raw_value: "a".into() },
-            Token { token_type: Symbol, raw_value: ")".into() },
-            Token { token_type: Symbol, raw_value: "/".into() },
-            Token { token_type: Literal, raw_value: "2".into() },
-            Token { token_type: Symbol, raw_value: "^".into() },
-            Token { token_type: Literal, raw_value: "4".into() },
-
-        ];
-        assert_eq!(wanted_sequence, Tokenizer::tokenize_line(sample_string.into()).unwrap());
+    fn lex_returns_1_plus_1() {
+        assert_eq!(lexer::lex("1 + 1".into()), Ok(vec![
+            Token::new(Literal, "1".into(), 0),
+            Token::new(Operator, "+".into(), 2),
+            Token::new(Literal, "1".into(), 4),
+        ]));
     }
 
+    #[test]
+    fn lex_returns_complex() {
+        assert_eq!(lexer::lex("1+1*(4^2)/ a".into()).unwrap(), vec![
+            Token::new(Literal, "1".into(), 0),
+            Token::new(Operator, "+".into(), 1),
+            Token::new(Literal, "1".into(), 2),
+            Token::new(Operator, "*".into(), 3),
+            Token::new(Separator, "(".into(), 4),
+            Token::new(Literal, "4".into(), 5),
+            Token::new(Operator, "^".into(), 6),
+            Token::new(Literal, "2".into(), 7),
+            Token::new(Separator, ")".into(), 8),
+            Token::new(Operator, "/".into(), 9),
+            Token::new(Identifier, "a".into(), 11),
+        ]);
+    }
 }
