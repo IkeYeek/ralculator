@@ -1,6 +1,6 @@
 use regex::Regex;
 use crate::lexer::token::Kind::{Identifier, Literal, Operator, Separator};
-use crate::lexer::token::Token;
+use crate::lexer::token::{Kind, Token};
 
 pub(crate) mod token {
     #[derive(Debug, PartialEq)]
@@ -30,11 +30,6 @@ pub(crate) mod token {
 
 // function is agnostic to the current real buffer. start_offset is used to compute token start
 fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token, String> {
-    /*
-    Enlever les whiteline en les comptant
-    chercher token selon regex
-    créer et retourner token
-     */
     let trimmed_start_whitespaces = buffer.trim_start();
     let delta = buffer_start_offset + buffer.len() - trimmed_start_whitespaces.len();
     let regexs = [
@@ -49,7 +44,6 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
         }
     }
     return Err(format!("unknown token at position {}", delta));
-
 }
 
 pub(crate) fn lex(buffer: String) -> Result<Vec<Token>, String> {
