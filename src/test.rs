@@ -39,7 +39,6 @@ mod lexer {
 #[cfg(test)]
 mod parser {
     use crate::lexer::lex;
-    use crate::lexer::token::Kind::Literal;
     use crate::parser::ast::Expression;
     use crate::parser::{Parser};
     use crate::parser::ast::Expression::{Addition, ParenthesisExpression, UnaryMinus, Variable};
@@ -71,28 +70,28 @@ mod parser {
     #[test]
     fn parse_1_plus_1() {
         let mut parser = Parser::new();
-        assert_eq!(parser.parse(&lex(String::from(("1 + 1"))).unwrap()).unwrap(),
-            Expression::Addition(Box::new(Expression::Literal(1)), Box::new(Expression::Literal(1))));
+        assert_eq!(parser.parse(&lex(String::from("1 + 1")).unwrap()).unwrap(),
+            Addition(Box::new(Expression::Literal(1)), Box::new(Expression::Literal(1))));
     }
 
     #[test]
     fn parse_1_minus_2() {
         let mut parser = Parser::new();
-        assert_eq!(parser.parse(&lex(String::from(("1 - 2"))).unwrap()).unwrap(),
+        assert_eq!(parser.parse(&lex(String::from("1 - 2")).unwrap()).unwrap(),
                    Expression::Subtraction(Box::new(Expression::Literal(1)), Box::new(Expression::Literal(2))));
     }
 
     #[test]
     fn parse_1_times_4() {
         let mut parser = Parser::new();
-        assert_eq!(parser.parse(&lex(String::from(("1 * 4"))).unwrap()).unwrap(),
+        assert_eq!(parser.parse(&lex(String::from("1 * 4")).unwrap()).unwrap(),
                    Expression::Multiplication(Box::new(Expression::Literal(1)), Box::new(Expression::Literal(4))));
     }
 
     #[test]
     fn parse_1_times_parexpr_3_plus_4() {
         let mut parser = Parser::new();
-        assert_eq!(parser.parse(&lex(String::from(("1 * (3 + 4)"))).unwrap()).unwrap(),
+        assert_eq!(parser.parse(&lex(String::from("1 * (3 + 4)")).unwrap()).unwrap(),
             Expression::Multiplication(Box::new(Expression::Literal(1)), Box::new(
                 ParenthesisExpression(Box::new(
                     Addition(Box::new(Expression::Literal(3)), Box::new(Expression::Literal(4)))
@@ -104,7 +103,7 @@ mod parser {
     #[test]
     fn parse_1_times_parexpr_3_plus_4_nospace() {
         let mut parser = Parser::new();
-        assert_eq!(parser.parse(&lex(String::from(("1*(3+4)"))).unwrap()).unwrap(),
+        assert_eq!(parser.parse(&lex(String::from("1*(3+4)")).unwrap()).unwrap(),
                    Expression::Multiplication(Box::new(Expression::Literal(1)), Box::new(
                        ParenthesisExpression(Box::new(
                            Addition(Box::new(Expression::Literal(3)), Box::new(Expression::Literal(4)))

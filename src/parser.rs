@@ -1,7 +1,3 @@
-use std::iter::Peekable;
-use std::ops::Deref;
-use std::process::id;
-use std::slice::Iter;
 use crate::lexer::token::{Kind, Token};
 use crate::parser::ast::Expression;
 use crate::lexer::token::Kind::{Operator, Separator};
@@ -24,11 +20,11 @@ impl TokenStream {
     }
 
     pub(crate) fn curr(&self) -> Option<&Token> {
-        self.buffer.get::<usize>(self.cursor.into())
+        self.buffer.get(self.cursor)
     }
 
     pub(crate) fn next(&mut self) -> Option<&Token> {
-        self.cursor = self.cursor + 1usize;
+        self.cursor +=  1;
         self.curr()
     }
 
@@ -51,7 +47,6 @@ pub(crate) mod ast {
 
         Multiplication(Box<Expression>, Box<Expression>),
         Division(Box<Expression>, Box<Expression>),
-        Factor(Box<Expression>),
         Literal(i64),
         Variable(String),
     }
@@ -71,7 +66,6 @@ impl Parser {
     }
 
     fn parse_factor(&mut self) -> Result<Expression, String> {
-        println!("Entering parse_factor");
         match self.tokens.curr() {
             Some(token) => match token.kind {
                 Operator => match token.raw_value.as_str() {
@@ -92,12 +86,9 @@ impl Parser {
                     _ => Err(String::from(format!("Unexpected operator {:?}", token)))
                 },
                 Kind::Literal => {
-                    if let Ok(literal_value) = token.clone().raw_value.parse::<i64>() {
-                        self.tokens.next();
-                        Ok(Literal(literal_value))
-                    } else {
-                        Err(String::from("Couldn't parse token {:?} to an integer"))
-                    }
+                    let literal_value = token.raw_value.parse::<i64>().map_err(|_| "Couldn't parse token to an integer")?;
+                    self.tokens.next();
+                    Ok(Literal(literal_value))
                 }
 
                 Kind::Identifier => {
@@ -141,7 +132,6 @@ impl Parser {
     }
 
     fn parse_term_prime(&mut self, left: Expression) -> Result<Expression, String> {
-        println!("Entering parse_term_prime");
         match self.tokens.curr() {
             Some(token) => {
                 match token.kind {
@@ -186,15 +176,10 @@ impl Parser {
     }
 
     fn parse_term(&mut self) -> Result<Expression, String> {
-        println!("Entering parse_term");
-        match self.parse_factor() {
-            Ok(factor) => self.parse_term_prime(factor),
-            Err(e) => Err(e),
-        }
+        self.parse_factor().and_then(|factor| self.parse_term_prime(factor))
     }
 
     fn parse_expr_prime(&mut self, left: Expression) -> Result<Expression, String> {
-        println!("Entering parse_expr_prime");
         match self.tokens.curr() {
             Some(token) => {
                 match token.kind {
@@ -239,15 +224,10 @@ impl Parser {
     }
 
     fn parse_expr(&mut self) -> Result<Expression, String> {
-        println!("Entering parse_expr");
-        match self.parse_term() {
-            Ok(term) => self.parse_expr_prime(term),
-            Err(e) => Err(e)
-        }
+        self.parse_term().and_then(|term| self.parse_expr_prime(term))
     }
 
     fn parse_assignment(&mut self) -> Result<Expression, String> {
-        println!("Entering parse_assignment");
         match self.tokens.curr() {
             Some(idt_token) if idt_token.kind == Kind::Identifier => {
                 let idt_token_clone = idt_token.clone();
@@ -256,18 +236,14 @@ impl Parser {
                         match self.tokens.next() {
                             Some(literal_token) => {
                                 if literal_token.kind == Kind::Literal {
-                                    if let Ok(literal_value) = literal_token.raw_value.parse::<i64>() {
-                                        self.symbol_table.push(idt_token_clone.clone().raw_value);
-                                        Ok(
-                                            Expression::Assignment(
-                                                idt_token_clone.raw_value,
-                                                Box::new(Literal(literal_value))
-                                            )
+                                    let literal_value = literal_token.raw_value.parse::<i64>().map_err(|_| format!("Expected a literal integer value, got {:?}", literal_token))?;
+                                    self.symbol_table.push(idt_token_clone.clone().raw_value);
+                                    Ok(
+                                        Expression::Assignment(
+                                            idt_token_clone.raw_value,
+                                            Box::new(Literal(literal_value))
                                         )
-                                    } else {
-                                        Err(String::from(format!("Expected a literal integer value, got {:?}", literal_token)))
-                                    }
-
+                                    )
                                 } else {
                                     Err(String::from(format!("Expected a literal token, got {:?}", literal_token)))
                                 }
@@ -283,7 +259,6 @@ impl Parser {
     }
 
     pub(crate) fn parse(&mut self, line: &Vec<Token>) -> Result<Expression, String> {
-        println!("Entering parse");
         self.tokens = TokenStream::new(line.to_vec());
         if let Some(token) = self.tokens.curr() {
             match token.kind {
