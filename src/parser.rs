@@ -237,7 +237,10 @@ impl Parser {
                             Some(literal_token) => {
                                 if literal_token.kind == Kind::Literal {
                                     let literal_value = literal_token.raw_value.parse::<i64>().map_err(|_| format!("Expected a literal integer value, got {:?}", literal_token))?;
-                                    self.symbol_table.push(idt_token_clone.clone().raw_value);
+                                    let literal_name = idt_token_clone.clone().raw_value;
+                                    if !self.symbol_table.contains(&literal_name) {
+                                        self.symbol_table.push(idt_token_clone.clone().raw_value);
+                                    }
                                     Ok(
                                         Expression::Assignment(
                                             idt_token_clone.raw_value,

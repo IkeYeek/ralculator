@@ -41,7 +41,7 @@ mod parser {
     use crate::lexer::lex;
     use crate::parser::ast::Expression;
     use crate::parser::{Parser};
-    use crate::parser::ast::Expression::{Addition, ParenthesisExpression, UnaryMinus, Variable};
+    use crate::parser::ast::Expression::{Addition, Multiplication, ParenthesisExpression, UnaryMinus, Variable};
 
     #[test]
     fn parse_assign() {
@@ -117,6 +117,66 @@ mod parser {
         let mut parser = Parser::new();
         parser.parse(&lex(String::from("a = 3")).unwrap()).unwrap();  // Required, else we got an undefined symbol exception
         assert_eq!(parser.parse(&lex(String::from("1 + a")).unwrap()).unwrap(), Expression::Addition(Box::new(Expression::Literal(1)), Box::new(Variable(String::from("a")))))
+    }
+
+    #[test]
+    fn parse_nested_parentheses() {
+        let mut parser = Parser::new();
+        assert_eq!(parser.parse(&lex(String::from("(1 +  2) *  3")).unwrap()).unwrap(),
+                   Expression::Multiplication(
+                       Box::new(
+                           ParenthesisExpression(Box::new(
+                               Addition(
+                                   Box::new(Expression::Literal(1)),
+                                   Box::new(Expression::Literal(2))
+                               )
+                           ))
+                       ),
+                       Box::new(Expression::Literal(3))
+                   )
+        );
+    }
+
+    #[test]
+    fn parse_nested_parentheses_with_precedence() {
+        let mut parser = Parser::new();
+        assert_eq!(parser.parse(&lex(String::from("1 + (2 *  3)")).unwrap()).unwrap(),
+                   Expression::Addition(
+                       Box::new(Expression::Literal(1            )),
+                       Box::new(
+                           ParenthesisExpression(Box::new(
+                               Multiplication(
+                                   Box::new(Expression::Literal(2)),
+                                   Box::new(Expression::Literal(3))
+                               )
+                           ))
+                       )
+                   )
+        );
+    }
+
+    #[test]
+    fn parse_nested_parentheses_with_precedence_and_unary() {
+        let mut parser = Parser::new();
+        assert_eq!(parser.parse(&lex(String::from("1 + (-2 *  3)")).unwrap()).unwrap(),
+                   Expression::Addition(
+                       Box::new(Expression::Literal(1)),
+                       Box::new(
+                           ParenthesisExpression(Box::new(
+                               Multiplication(
+                                   Box::new(UnaryMinus(Box::new(Expression::Literal(2)))),
+                                   Box::new(Expression::Literal(3))
+                               )
+                           ))
+                       )
+                   )
+        );
+    }
+
+    #[test]
+    fn parse_nested_parentheses_with_precedence_and_unary_fail() {
+        let mut parser = Parser::new();
+        assert!(parser.parse(&lex(String::from("1 + (-2 *  3")).unwrap()).is_err());
     }
 
 
