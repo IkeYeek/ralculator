@@ -39,6 +39,7 @@ mod lexer {
 #[cfg(test)]
 mod parser {
     use crate::lexer::lex;
+    use crate::lexer::token::Kind::Literal;
     use crate::parser::ast::Expression;
     use crate::parser::{Parser};
     use crate::parser::ast::Expression::{Addition, Multiplication, ParenthesisExpression, UnaryMinus, Variable};
@@ -153,6 +154,14 @@ mod parser {
                        )
                    )
         );
+    }
+
+    #[test]
+    fn parse_minus_1_minus_minus_1() {
+        let mut parser = Parser::new();
+        assert_eq!(parser.parse(&lex(String::from("-1 - -1")).unwrap()).unwrap(), Expression::Subtraction(
+            Box::new(UnaryMinus(Box::new(Expression::Literal(1)))), Box::new(UnaryMinus(Box::new(Expression::Literal(1))))
+        ))
     }
 
     #[test]
