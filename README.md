@@ -15,7 +15,7 @@ a = 3 => a=4
 a * 2 => 8
 b * 2 => b is not defined
 
-# Symbols
+# Operators
 OPS:
 - BINOPS:
   - PLUS (+)
@@ -30,6 +30,10 @@ OPS:
 - LEFT_PARENTHESIS
 - RIGHT_PARENTHESIS
 
+# Separators
+- (
+- )
+
 # Identifiers
 simple sequences of letters matching this simple regex: `^[a-zA-Z_]+$`
 
@@ -40,8 +44,32 @@ simple numbers, integers for now
 - Scanning / parsing
 - Interpreting
 
-# Scanning / parsing
+# lexer
 Types of token:
-- Symbol
+- Operator
 - Identifier
 - Litteral
+- Separator
+
+# parser
+## grammar
+### currently only assignments to litteral values is supported
+```
+<Line> ::= <Assignment> | <Expression>
+
+<Assignment> ::= <Identifier> "=" <Expression> 
+
+<Expression> ::= <Term> <ExpressionPrime>
+<ExpressionPrime> ::= ("+" <Term> <ExpressionPrime> | "-" <Term> <ExpressionPrime> |  E)
+
+<Term> ::= <Factor> <TermPrime>
+<TermPrime> ::= ("*" <Factor> <TermPrime> | "/" <Factor> <TermPrime> |  E)
+
+<Factor> ::= ("+" | "-") <Factor> 
+			|	<Literal> 
+			|	<Identifier> 
+			|	"(" <Expression> ")" 
+
+<Literal> ::= ([0-9])+
+<Identifier> ::= ([a-z] | [A-Z] | "_")+
+```

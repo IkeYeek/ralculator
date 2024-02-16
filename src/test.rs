@@ -35,3 +35,26 @@ mod lexer {
         ]);
     }
 }
+
+#[cfg(test)]
+mod parser {
+    use crate::lexer::lex;
+    use crate::parser::ast::Expression;
+    use crate::parser::{Parser};
+
+    #[test]
+    fn parse_assign() {
+        let mut parser = Parser::new();
+        assert_eq!(parser.parse(&lex(String::from("a = 1")).unwrap()).unwrap(),
+            Expression::Assignment("a".into(), Box::new(Expression::Literal(1))))
+    }
+
+    #[test]
+    fn parse_1_plus_1() {
+        let mut parser = Parser::new();
+        assert_eq!(parser.parse(&lex(String::from(("1 + 1"))).unwrap()).unwrap(),
+            Expression::Addition(Box::new(Expression::Literal(1)), Box::new(Expression::Literal(1))));
+    }
+
+
+}

@@ -1,16 +1,16 @@
 use regex::Regex;
 use crate::lexer::token::Kind::{Identifier, Literal, Operator, Separator};
-use crate::lexer::token::{Kind, Token};
+use crate::lexer::token::{ Token};
 
 pub(crate) mod token {
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub(crate) enum Kind {
         Identifier,
         Operator,
         Separator,
         Literal,
     }
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub(crate) struct Token {
         pub(crate) kind: Kind,
         pub(crate) raw_value: String,
@@ -35,7 +35,7 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
     let regexs = [
         (Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
         (Literal, Regex::new(r"^\d+").unwrap()),
-        (Operator, Regex::new(r"^[+-/*^]").unwrap()),
+        (Operator, Regex::new(r"^[+-/*^=]").unwrap()),
         (Separator, Regex::new(r"^[()]").unwrap())
     ];
     for r in regexs {
