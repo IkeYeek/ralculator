@@ -47,6 +47,8 @@ pub(crate) mod ast {
         UnaryPlus(Box<Expression>),
         UnaryMinus(Box<Expression>),
 
+        ParenthesisExpression(Box<Expression>),
+
         Multiplication(Box<Expression>, Box<Expression>),
         Division(Box<Expression>, Box<Expression>),
         Factor(Box<Expression>),
@@ -68,11 +70,184 @@ impl Parser {
         }
     }
 
+    fn parse_factor(&mut self) -> Result<Expression, String> {
+        println!("Entering parse_factor");
+        match self.tokens.curr() {
+            Some(token) => match token.kind {
+                Operator => match token.raw_value.as_str() {
+                    "+" => {
+                        self.tokens.next();
+                        match self.parse_factor() {
+                            Ok(factor) => Ok(UnaryPlus(Box::new(factor))),
+                            Err(e) => Err(e)
+                        }
+                    },
+                    "-" => {
+                        self.tokens.next();
+                        match self.parse_factor() {
+                            Ok(factor) => Ok(UnaryMinus(Box::new(factor))),
+                            Err(e) => Err(e)
+                        }
+                    },
+                    _ => Err(String::from(format!("Unexpected operator {:?}", token)))
+                },
+                Kind::Literal => {
+                    if let Ok(literal_value) = token.clone().raw_value.parse::<i64>() {
+                        self.tokens.next();
+                        Ok(Literal(literal_value))
+                    } else {
+                        Err(String::from("Couldn't parse token {:?} to an integer"))
+                    }
+                }
+
+                Kind::Identifier => {
+                    if self.symbol_table.contains(&token.raw_value) {
+                        let res = Ok(Variable(token.raw_value.clone()));
+                        self.tokens.next();
+                        res
+                    } else {
+                        Err(String::from(format!("Couldn't find symbol {}", token.raw_value)))
+                    }
+                }
+                Separator => {
+                    if let "(" = token.raw_value.as_str() {
+                        self.tokens.next();
+                        let expr = self.parse_expr();
+                        match expr {
+                            Ok(expr) => {
+                                match self.tokens.curr() {
+                                    Some(token) => {
+                                        if token.kind == Separator && token.raw_value.as_str() == ")" {
+                                            self.tokens.next();
+                                            Ok(
+                                                Expression::ParenthesisExpression(Box::new(expr))
+                                            )
+                                        } else {
+                                            Err(String::from(format!("Expected ')', got {:?}, which is definitly not ')'", token.raw_value)))
+                                        }
+                                    },
+                                    None => Err(String::from("Expected ')', got nothing bruuuuh"))
+                                }
+                            },
+                            Err(e) => Err(e)
+                        }
+                    } else {
+                        Err(String::from(format!("Expected a '(' got {:?}", token.raw_value)))
+                    }
+                }
+            },
+            None => Err(String::from("Expected a factor, got nothing"))
+        }
+    }
+
+    fn parse_term_prime(&mut self, left: Expression) -> Result<Expression, String> {
+        println!("Entering parse_term_prime");
+        match self.tokens.curr() {
+            Some(token) => {
+                match token.kind {
+                    Operator => {
+                        match token.raw_value.as_str() {
+                            "*" => {
+                                self.tokens.next();
+                                let factor = self.parse_factor();
+                                match factor {
+                                    Ok(factor) => {
+                                        self.parse_term_prime(
+                                            Expression::Multiplication(
+                                                Box::from(left), Box::from(factor)
+                                            )
+                                        )
+                                    },
+                                    Err(e) => Err(e),
+                                }
+                            },
+                            "/" => {
+                                self.tokens.next();
+                                let factor = self.parse_factor();
+                                match factor {
+                                    Ok(factor) => {
+                                        self.parse_term_prime(
+                                            Expression::Division(
+                                                Box::from(left), Box::from(factor)
+                                            )
+                                        )
+                                    },
+                                    Err(e) => Err(e),
+                                }
+                            },
+                            _ => Ok(left)
+                        }
+                    }
+                    _ => Ok(left)
+                }
+            },
+            None => Ok(left),
+        }
+    }
+
+    fn parse_term(&mut self) -> Result<Expression, String> {
+        println!("Entering parse_term");
+        match self.parse_factor() {
+            Ok(factor) => self.parse_term_prime(factor),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn parse_expr_prime(&mut self, left: Expression) -> Result<Expression, String> {
+        println!("Entering parse_expr_prime");
+        match self.tokens.curr() {
+            Some(token) => {
+                match token.kind {
+                    Operator => {
+                        match token.raw_value.as_str() {
+                            "+" => {
+                                self.tokens.next();
+                                let factor = self.parse_factor();
+                                match factor {
+                                    Ok(factor) => {
+                                        self.parse_term_prime(
+                                            Expression::Addition(
+                                                Box::from(left), Box::from(factor)
+                                            )
+                                        )
+                                    },
+                                    Err(e) => Err(e),
+                                }
+                            },
+                            "-" => {
+                                self.tokens.next();
+                                let factor = self.parse_factor();
+                                match factor {
+                                    Ok(factor) => {
+                                        self.parse_term_prime(
+                                            Expression::Subtraction(
+                                                Box::from(left), Box::from(factor)
+                                            )
+                                        )
+                                    },
+                                    Err(e) => Err(e),
+                                }
+                            },
+                            _ => Ok(left)
+                        }
+                    }
+                    _ => Ok(left)
+                }
+            },
+            None => Ok(left),
+        }
+    }
+
     fn parse_expr(&mut self) -> Result<Expression, String> {
-        todo!("parse_expr")
+        println!("Entering parse_expr");
+        match self.parse_term() {
+            Ok(term) => self.parse_expr_prime(term),
+            Err(e) => Err(e)
+        }
     }
 
     fn parse_assignment(&mut self) -> Result<Expression, String> {
+        println!("Entering parse_assignment");
         match self.tokens.curr() {
             Some(idt_token) if idt_token.kind == Kind::Identifier => {
                 let idt_token_clone = idt_token.clone();
@@ -82,6 +257,7 @@ impl Parser {
                             Some(literal_token) => {
                                 if literal_token.kind == Kind::Literal {
                                     if let Ok(literal_value) = literal_token.raw_value.parse::<i64>() {
+                                        self.symbol_table.push(idt_token_clone.clone().raw_value);
                                         Ok(
                                             Expression::Assignment(
                                                 idt_token_clone.raw_value,
@@ -107,6 +283,7 @@ impl Parser {
     }
 
     pub(crate) fn parse(&mut self, line: &Vec<Token>) -> Result<Expression, String> {
+        println!("Entering parse");
         self.tokens = TokenStream::new(line.to_vec());
         if let Some(token) = self.tokens.curr() {
             match token.kind {
