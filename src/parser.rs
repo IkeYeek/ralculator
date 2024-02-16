@@ -83,7 +83,7 @@ impl Parser {
                             Err(e) => Err(e)
                         }
                     },
-                    _ => Err(String::from(format!("Unexpected operator {:?}", token)))
+                    _ => Err(format!("Unexpected operator {token:?}"))
                 },
                 Kind::Literal => {
                     let literal_value = token.raw_value.parse::<i64>().map_err(|_| "Couldn't parse token to an integer")?;
@@ -97,7 +97,7 @@ impl Parser {
                         self.tokens.next();
                         res
                     } else {
-                        Err(String::from(format!("Couldn't find symbol {}", token.raw_value)))
+                        Err(format!("Couldn't find symbol {}", token.raw_value))
                     }
                 }
                 Separator => {
@@ -114,7 +114,7 @@ impl Parser {
                                                 Expression::ParenthesisExpression(Box::new(expr))
                                             )
                                         } else {
-                                            Err(String::from(format!("Expected ')', got {:?}, which is definitly not ')'", token.raw_value)))
+                                            Err(format!("Expected ')', got {:?}, which is definitly not ')'", token.raw_value))
                                         }
                                     },
                                     None => Err(String::from("Expected ')', got nothing bruuuuh"))
@@ -123,7 +123,7 @@ impl Parser {
                             Err(e) => Err(e)
                         }
                     } else {
-                        Err(String::from(format!("Expected a '(' got {:?}", token.raw_value)))
+                        Err(format!("Expected a '(' got {:?}", token.raw_value))
                     }
                 }
             },
@@ -236,7 +236,7 @@ impl Parser {
                         match self.tokens.next() {
                             Some(literal_token) => {
                                 if literal_token.kind == Kind::Literal {
-                                    let literal_value = literal_token.raw_value.parse::<i64>().map_err(|_| format!("Expected a literal integer value, got {:?}", literal_token))?;
+                                    let literal_value = literal_token.raw_value.parse::<i64>().map_err(|_| format!("Expected a literal integer value, got {literal_token:?}"))?;
                                     let literal_name = idt_token_clone.clone().raw_value;
                                     if !self.symbol_table.contains(&literal_name) {
                                         self.symbol_table.push(idt_token_clone.clone().raw_value);
@@ -248,7 +248,7 @@ impl Parser {
                                         )
                                     )
                                 } else {
-                                    Err(String::from(format!("Expected a literal token, got {:?}", literal_token)))
+                                    Err(format!("Expected a literal token, got {literal_token:?}"))
                                 }
                             },
                             None => Err(String::from("Expected a literal, got nothing")),
@@ -261,7 +261,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse(&mut self, line: &Vec<Token>) -> Result<Expression, String> {
+    pub(crate) fn parse(&mut self, line: &[Token]) -> Result<Expression, String> {
         self.tokens = TokenStream::new(line.to_vec());
         if let Some(token) = self.tokens.curr() {
             match token.kind {
@@ -273,22 +273,21 @@ impl Parser {
                             } else {
                                 self.parse_expr()
                             },
-                            _ => Err(String::from(format!("Expected calculus or assignment operator, got {:?}", token)))
+                            _ => Err(format!("Expected calculus or assignment operator, got {token:?}"))
                         }
                     },
                     None => todo!("try parse expr (solo identifier are possible)")
                 },
-                Separator => self.parse_expr(),
+                Separator | Kind::Literal => self.parse_expr(),
                 Operator => {
                     match token.raw_value.as_str() {
                         "+" | "-" => self.parse_expr(),
-                        _ => Err(String::from(format!("Expected + or -, got {:?}", token)))
+                        _ => Err(format!("Expected + or -, got {token:?}"))
                     }
                 }
-                Kind::Literal => self.parse_expr(),
             }
         } else {
-            return Err(String::from("Trying to parse an empty string"));
+            Err(String::from("Trying to parse an empty string"))
         }
     }
 }

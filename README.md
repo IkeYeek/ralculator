@@ -52,6 +52,7 @@ Types of token:
 - Separator
 
 # parser
+As my grammar is simple and I managed to avoid left recursion and ambiguous rules, I will implement some simple Recursive Descent Parser.
 ## grammar
 ### currently only assignments to litteral values is supported
 ```

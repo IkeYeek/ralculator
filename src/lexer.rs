@@ -19,7 +19,7 @@ pub(crate) mod token {
 
     impl Token {
         pub(crate) fn new(kind: Kind, raw_value: String, position: usize) -> Self {
-            return Token {
+            Token {
                 kind,
                 raw_value,
                 position
@@ -43,10 +43,10 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
             return Ok(Token::new(r.0, res.as_str().into(), delta));
         }
     }
-    return Err(format!("unknown token at position {}", delta));
+    Err(format!("unknown token at position {delta}"))
 }
 
-pub(crate) fn lex(buffer: String) -> Result<Vec<Token>, String> {
+pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
     let mut token_vector: Vec<Token> = Vec::new();
     let mut cursor: usize = 0;
     while cursor < buffer.len() {
