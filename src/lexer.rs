@@ -49,6 +49,7 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
 pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
     let mut token_vector: Vec<Token> = Vec::new();
     let mut cursor: usize = 0;
+    let mut buffer = buffer.trim();
     while cursor < buffer.len() {
         match next_token_in_buff(&buffer[cursor..], cursor) {
             Ok(token) => {

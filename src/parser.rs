@@ -1,7 +1,8 @@
+use log::debug;
 use crate::lexer::token::{Kind, Token};
 use crate::parser::ast::Expression;
 use crate::lexer::token::Kind::{Operator, Separator};
-use crate::parser::ast::Expression::{Literal, UnaryMinus, UnaryPlus, Variable};
+use crate::parser::ast::Expression::{Assignment, Literal, UnaryMinus, UnaryPlus, Variable};
 
 
 
@@ -233,25 +234,18 @@ impl Parser {
                 let idt_token_clone = idt_token.clone();
                 match self.tokens.next() {
                     Some(assignment_token) if assignment_token.kind == Operator && assignment_token.raw_value.as_str() == "=" => {
-                        match self.tokens.next() {
-                            Some(literal_token) => {
-                                if literal_token.kind == Kind::Literal {
-                                    let literal_value = literal_token.raw_value.parse::<i64>().map_err(|_| format!("Expected a literal integer value, got {literal_token:?}"))?;
-                                    let literal_name = idt_token_clone.clone().raw_value;
-                                    if !self.symbol_table.contains(&literal_name) {
-                                        self.symbol_table.push(idt_token_clone.clone().raw_value);
-                                    }
-                                    Ok(
-                                        Expression::Assignment(
-                                            idt_token_clone.raw_value,
-                                            Box::new(Literal(literal_value))
-                                        )
-                                    )
-                                } else {
-                                    Err(format!("Expected a literal token, got {literal_token:?}"))
+                        self.tokens.next();
+                        let maybe_expr = self.parse_expr();
+                        match maybe_expr {
+                            Ok(expr) => {
+                                if !self.symbol_table.contains(&idt_token_clone.raw_value) {
+                                    self.symbol_table.push(idt_token_clone.clone().raw_value)
                                 }
+                                Ok(
+                                    Assignment(idt_token_clone.raw_value, Box::new(expr))
+                                )
                             },
-                            None => Err(String::from("Expected a literal, got nothing")),
+                            Err(e) => Err(e)
                         }
                     },
                     _ => Err(String::from("Expected an = after the identifier")),
