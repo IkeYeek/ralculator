@@ -1,71 +1,122 @@
-Was too bored to make music tonight so here is a simple calculator using rust to parse simple expressions because I want to learn rust lmao
+# 🦀 <sup>R</sup><sub>(ust)</sub><sup>alculator</sup> 🧮
 
-# Disclaimer
-It is late, I don't know rust very well and I have not written a single parser/compiler/interpreter/actually somehow a little theorical thing in like two years so the code in this repo will probably be terrfying...
+Welcome to the <sup>R</sup><sub>(ust)</sub><sup>alculator</sup> repository! 🎉 This is a simple mathematical expression interpreter (and maybe later on compiler???👀) application written in Rust, created as a fun side project to explore the language and its features. The calculator can parse and evaluate basic arithmetic expressions, as well as store expression in variables and is designed to be easy to understand and extend.
 
-# Syntax
-1+1 => 2
+## 📝 Table of Contents
+- [Getting Started](#getting-started)
+- [Features](#features)
+- [Usage](#usage)
+- [Syntax](#syntax)
+- [Operators](#operators)
+- [Separators](#separators)
+- [Identifiers](#identifiers)
+- [Literals](#literals)
+- [Steps](#steps)
+- [Lexer](#lexer)
+- [Parser](#parser)
+- [Interpreter](#interpreter)
+- [Grammar](#grammar)
+- [Contributing](#contributing)
+- [License](#license)
 
-2*4 => 8
+## 🚀 Getting Started
 
-(1+2) * 4 => 12
+To get started with the <sup>R</sup><sub>(ust)</sub><sup>alculator</sup>, clone the repository and follow the build instructions below.
 
-a = 3 => a=4
+### 📦 Prerequisites
 
-a * 2 => 8
-b * 2 => b is not defined
+Ensure you have Rust installed on your system. If not, you can download and install it from [rust-lang.org](https://www.rust-lang.org/tools/install).
 
-```text
-note that it has context. If I do for example in interactive mode:
-a = 4 [enter] => 4
-b = a * 2 [enter] => 8
-b [enter] => 8
-a = 2 [enter] => 2
-b [enter] => 4
+### 🛠️ Building
 
+```sh
+git clone https://github.com/yourusername/rusty-calculator.git
+cd rusty-calculator
+cargo build --release
 ```
 
-# Operators
-OPS:
-- Binary operators:
-  - PLUS (+)
-  - MINUS (-)
-  - ASSIGN (=)
-  - TIMES (*)
-  - DIVIDE (/)
-- Unary operators
-  - UNARY_PLUS (+)
-  - UNARY_MINUS (-)
+## 🌟 Features
 
-# Separators
-- (
-- )
+- Simple arithmetic operations: addition, subtraction, multiplication, and division.
+- Unary operations: positive and negative (yeah ikr unary positive operator is useless but that's still fun).
+- Parentheses for grouping expressions.
+- Variable assignment and usage. Variables are expression so if a variable relies on another one, and the one it relies on change, its expressed value will change as well if computed.
+- Interactive mode for entering expressions one by one (REPL).
 
-# Identifiers
-simple sequences of letters matching this simple regex: `^[a-zA-Z_]+$`
+## 📖 Usage
 
-# Litterals
-numbers: integers, decimal or scientific notation, regex: `^\d+([.]\d+)?(e[+-]?\d+)?`
+The calculator can be used in interactive mode or by passing expressions as command-line arguments. For interactive mode, simply run the application without any arguments. To evaluate an expression directly, pass it as an argument:
 
-# Steps:
-- Scanning / parsing
-- Interpreting
+```sh
+cargo run --release -- -e "1 +  2 *  3"
+```
+for using it to eval this expression
+```sh
+cargo run --release -- -i
+```
+for using it in interactive mode
 
-# lexer
-Types of token:
-- Operator
-- Identifier
-- Litteral
-- Separator
+## 🔢 Syntax
 
-# parser
-As my grammar is simple and I managed to avoid left recursion and ambiguous rules, I will implement some simple Recursive Descent Parser.
-## grammar
-### currently only assignments to litteral values is supported
+Here are some examples of how expressions are evaluated:
+
+- `1 +  1` => `2`
+- `2 *  4` => `8`
+- `(1 +  2) *  4` => `12`
+- `a =  3` => `a =  3` (assigns the value `3` to variable `a`)
+- `a *  2` => `6` (assumes `a` is already defined as `3`)
+- `b *  2` => `Error: b is not defined` (since `b` is not defined)
+
+## 🔄 Operators
+
+- **Binary operators**: `+`, `-`, `=`, `*`, `/`
+- **Unary operators**: `+`, `-`
+
+## 🔤 Separators
+
+- `(`
+- `)`
+
+## 🆔 Identifiers
+
+Identifiers are sequences of letters, digits, and underscores, starting with a letter or underscore. They are used for variable assignment and reference.
+
+## 🔢 Literals
+
+Literals are numeric values, which can be integers or decimal numbers.
+
+## 🚶‍♂️ Steps
+
+The calculator operates in two main steps:
+
+1. Scanning / parsing: The input expression is tokenized and parsed into an Abstract Syntax Tree (AST).
+2. Interpreting: The AST is evaluated to produce the result.
+
+## 📏 Lexer
+
+The lexer breaks down the input string into tokens of different types:
+
+- **Operator**: Represents an arithmetic operator.
+- **Identifier**: Represents a variable name or an unquoted string.
+- **Literal**: Represents a numeric value.
+- **Separator**: Represents parentheses for grouping expressions.
+
+## 📚 Parser
+
+The parser constructs an Abstract Syntax Tree (AST) from the tokens produced by the lexer. It uses a Recursive Descent Parser to handle the precedence and associativity of the operators.
+
+## 🧠 Interpreter
+
+The interpreter walks through the AST and evaluates each expression node. It maintains a symbol table to keep track of variable assignments and their values.
+
+## 📜 Grammar
+
+The grammar of the calculator is defined as follows:
+
 ```
 <Line> ::= <Assignment> | <Expression>
 
-<Assignment> ::= <Identifier> "=" <Expression> 
+<Assignment> ::= <Identifier> "=" <Expression>  
 
 <Expression> ::= <Term> <ExpressionPrime>
 <ExpressionPrime> ::= ("+" <Term> <ExpressionPrime> | "-" <Term> <ExpressionPrime> |  E)
@@ -73,11 +124,19 @@ As my grammar is simple and I managed to avoid left recursion and ambiguous rule
 <Term> ::= <Factor> <TermPrime>
 <TermPrime> ::= ("*" <Factor> <TermPrime> | "/" <Factor> <TermPrime> |  E)
 
-<Factor> ::= ("+" | "-") <Factor> 
-			|	<Literal> 
-			|	<Identifier> 
-			|	"(" <Expression> ")" 
+<Factor> ::= ("+" | "-") <Factor>  
+            | <Literal>  
+            | <Identifier>  
+            | "(" <Expression> ")"  
 
 <Literal> ::= ([0-9])+
 <Identifier> ::= ([a-z] | [A-Z] | "_")+
 ```
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to submit pull requests or open issues for feature requests or bug reports.
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.
