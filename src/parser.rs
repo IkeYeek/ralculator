@@ -1,4 +1,3 @@
-use log::debug;
 use crate::lexer::token::{Kind, Token};
 use crate::parser::ast::Expression;
 use crate::lexer::token::Kind::{Operator, Separator};
@@ -35,7 +34,7 @@ impl TokenStream {
 }
 
 pub(crate) mod ast {
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub(crate) enum Expression {
         Assignment(String, Box<Expression>),
 
@@ -48,7 +47,7 @@ pub(crate) mod ast {
 
         Multiplication(Box<Expression>, Box<Expression>),
         Division(Box<Expression>, Box<Expression>),
-        Literal(i64),
+        Literal(u64),
         Variable(String),
     }
 }
@@ -87,7 +86,7 @@ impl Parser {
                     _ => Err(format!("Unexpected operator {token:?}"))
                 },
                 Kind::Literal => {
-                    let literal_value = token.raw_value.parse::<i64>().map_err(|_| "Couldn't parse token to an integer")?;
+                    let literal_value = token.raw_value.parse::<u64>().map_err(|_| "Couldn't parse token to an integer")?;
                     self.tokens.next();
                     Ok(Literal(literal_value))
                 }
@@ -188,36 +187,18 @@ impl Parser {
                         match token.raw_value.as_str() {
                             "+" => {
                                 self.tokens.next();
-                                let factor = self.parse_factor();
-                                match factor {
-                                    Ok(factor) => {
-                                        self.parse_term_prime(
-                                            Expression::Addition(
-                                                Box::from(left), Box::from(factor)
-                                            )
-                                        )
-                                    },
-                                    Err(e) => Err(e),
-                                }
+                                let right = self.parse_term()?;
+                                self.parse_expr_prime(Expression::Addition(Box::new(left), Box::new(right)))
                             },
                             "-" => {
                                 self.tokens.next();
-                                let factor = self.parse_factor();
-                                match factor {
-                                    Ok(factor) => {
-                                        self.parse_term_prime(
-                                            Expression::Subtraction(
-                                                Box::from(left), Box::from(factor)
-                                            )
-                                        )
-                                    },
-                                    Err(e) => Err(e),
-                                }
+                                let right = self.parse_term()?;
+                                self.parse_expr_prime(Expression::Subtraction(Box::new(left), Box::new(right)))
                             },
                             _ => Ok(left)
                         }
-                    }
-                    _ => Ok(left)
+                    },
+                    _ => Ok(left),
                 }
             },
             None => Ok(left),
@@ -270,7 +251,7 @@ impl Parser {
                             _ => Err(format!("Expected calculus or assignment operator, got {token:?}"))
                         }
                     },
-                    None => todo!("try parse expr (solo identifier are possible)")
+                    None => self.parse_expr()
                 },
                 Separator | Kind::Literal => self.parse_expr(),
                 Operator => {

@@ -19,6 +19,15 @@ mod lexer {
     }
 
     #[test]
+    fn lex_ignores_whitespace() {
+        assert_eq!(lexer::lex("1 +  1".into()), Ok(vec![
+            Token::new(Literal, "1".into(),  0),
+            Token::new(Operator, "+".into(),  2),
+            Token::new(Literal, "1".into(),  5),
+        ]));
+    }
+
+    #[test]
     fn lex_returns_complex() {
         assert_eq!(lexer::lex("1+1*(4^2)/ a".into()).unwrap(), vec![
             Token::new(Literal, "1".into(), 0),
@@ -120,6 +129,12 @@ mod parser {
     }
 
     #[test]
+    fn parse_undefined_variable() {
+        let mut parser = Parser::new();
+        assert!(parser.parse(&lex("a + b").unwrap()).is_err());
+    }
+
+    #[test]
     fn parse_nested_parentheses() {
         let mut parser = Parser::new();
         assert_eq!(parser.parse(&lex("(1 +  2) *  3").unwrap()).unwrap(),
@@ -187,5 +202,43 @@ mod parser {
         assert!(parser.parse(&lex("1 + (-2 *  3").unwrap()).is_err());
     }
 
+    #[test]
+    fn parse_empty_string() {
+        let mut parser = Parser::new();
+        assert!(parser.parse(&lex("").unwrap()).is_err());
+    }
 
+    #[test]
+    fn assign_expr() {
+        let mut parser = Parser::new();
+        let res = parser.parse(&lex("a = 2 + 2 * 3").unwrap()).unwrap();
+        println!("{:?}", res);
+    }
+}
+
+#[cfg(test)]
+mod interpreter {
+    use crate::interpreter::Interpreter;
+    use crate::lexer::lex;
+    use crate::parser::Parser;
+
+    #[test]
+    fn interpret_assignment() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("a = 2").unwrap()).unwrap()).unwrap(), 2);
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("b = a + 2").unwrap()).unwrap()).unwrap(), 4);
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("a").unwrap()).unwrap()).unwrap(), 2);
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("b").unwrap()).unwrap()).unwrap(), 4);
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("a = 4").unwrap()).unwrap()).unwrap(), 4);
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("b").unwrap()).unwrap()).unwrap(), 6);
+    }
+
+    #[test]
+    fn interpret_parenthesed_expr() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("1 + 2 * 4").unwrap()).unwrap()).unwrap(), 9);
+        assert_eq!(interpreter.interpret_ast(parser.parse(&lex("1 + 2 * 4 + 3 - (4 + 6 * 4)").unwrap()).unwrap()).unwrap(), -16);
+    }
 }
