@@ -8,12 +8,6 @@ pub(crate) struct Cli {
     pub(crate) mode: Mode,
 }
 
-impl Cli {
-    pub(crate) fn run_interactive() -> Result<(), String> {
-        Ok(())
-    }
-}
-
 #[derive(Args, Debug)]
 #[group(required = true, multiple = false)]
 pub(crate) struct Mode {

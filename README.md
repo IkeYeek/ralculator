@@ -1,6 +1,17 @@
 # 🦀 <sup>R</sup><sub>(ust)</sub><sup>alculator</sup> 🧮
 
+
+| cargo test                                                                                                                                                    | cargo clippy -- -Wclippy::pedantic -Wclippy::style                                                                                                                  |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [![cargo test](https://github.com/IkeYeek/ralculator/actions/workflows/test.yml/badge.svg)](https://github.com/IkeYeek/ralculator/actions/workflows/test.yml) | [![cargo clippy](https://github.com/IkeYeek/ralculator/actions/workflows/clippy.yml/badge.svg)](https://github.com/IkeYeek/ralculator/actions/workflows/clippy.yml) |
+                                                                                                                                                      
+
+
+
+
 Welcome to the <sup>R</sup><sub>(ust)</sub><sup>alculator</sup> repository! 🎉 This is a simple mathematical expression interpreter (and maybe later on compiler???👀) application written in Rust, created as a fun side project to explore the language and its features. The calculator can parse and evaluate basic arithmetic expressions, as well as store expression in variables and is designed to be easy to understand and extend.
+## 🚧 TODO
+REPL
 
 ## 📝 Table of Contents
 - [Getting Started](#-getting-started)

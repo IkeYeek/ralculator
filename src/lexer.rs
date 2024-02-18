@@ -19,7 +19,7 @@ impl Token {
         Token {
             kind,
             raw_value,
-            position
+            position,
         }
     }
 }
@@ -32,7 +32,7 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
         (TokenKind::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
         (TokenKind::Literal, Regex::new(r"^\d+([.]\d+)?(e[+-]?\d+)?").unwrap()),
         (TokenKind::Operator, Regex::new(r"^[+-/*^=]").unwrap()),
-        (TokenKind::Separator, Regex::new(r"^[()]").unwrap())
+        (TokenKind::Separator, Regex::new(r"^[()]").unwrap()),
     ];
     for r in regexs {
         if let Some(res) = r.1.find(trimmed_start_whitespaces) {
@@ -51,8 +51,10 @@ pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
             Ok(token) => {
                 cursor = token.position + token.raw_value.len();
                 token_vector.push(token);
-            },
-            Err(e) => return Err(e)
+            }
+            Err(e) => {
+                return Err(e);
+            }
         }
     }
     Ok(token_vector)
@@ -61,7 +63,7 @@ pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
 #[cfg(test)]
 pub(crate) mod test {
     use crate::lexer;
-    use crate::lexer::TokenKind::{Identifier, Literal, Operator, Separator};
+    use crate::lexer::TokenKind::{ Identifier, Literal, Operator, Separator };
     use crate::lexer::Token;
 
     #[test]
@@ -71,37 +73,49 @@ pub(crate) mod test {
 
     #[test]
     fn lex_returns_1_plus_1() {
-        assert_eq!(lexer::lex("1 + 1".into()), Ok(vec![
-            Token::new(Literal, "1".into(), 0),
-            Token::new(Operator, "+".into(), 2),
-            Token::new(Literal, "1".into(), 4),
-        ]));
+        assert_eq!(
+            lexer::lex("1 + 1".into()),
+            Ok(
+                vec![
+                    Token::new(Literal, "1".into(), 0),
+                    Token::new(Operator, "+".into(), 2),
+                    Token::new(Literal, "1".into(), 4)
+                ]
+            )
+        );
     }
 
     #[test]
     fn lex_ignores_whitespace() {
-        assert_eq!(lexer::lex("1 +  1".into()), Ok(vec![
-            Token::new(Literal, "1".into(),  0),
-            Token::new(Operator, "+".into(),  2),
-            Token::new(Literal, "1".into(),  5),
-        ]));
+        assert_eq!(
+            lexer::lex("1 +  1".into()),
+            Ok(
+                vec![
+                    Token::new(Literal, "1".into(), 0),
+                    Token::new(Operator, "+".into(), 2),
+                    Token::new(Literal, "1".into(), 5)
+                ]
+            )
+        );
     }
 
     #[test]
     fn lex_returns_complex() {
-        assert_eq!(lexer::lex("1+1*(4^2)/ a".into()).unwrap(), vec![
-            Token::new(Literal, "1".into(), 0),
-            Token::new(Operator, "+".into(), 1),
-            Token::new(Literal, "1".into(), 2),
-            Token::new(Operator, "*".into(), 3),
-            Token::new(Separator, "(".into(), 4),
-            Token::new(Literal, "4".into(), 5),
-            Token::new(Operator, "^".into(), 6),
-            Token::new(Literal, "2".into(), 7),
-            Token::new(Separator, ")".into(), 8),
-            Token::new(Operator, "/".into(), 9),
-            Token::new(Identifier, "a".into(), 11),
-        ]);
+        assert_eq!(
+            lexer::lex("1+1*(4^2)/ a".into()).unwrap(),
+            vec![
+                Token::new(Literal, "1".into(), 0),
+                Token::new(Operator, "+".into(), 1),
+                Token::new(Literal, "1".into(), 2),
+                Token::new(Operator, "*".into(), 3),
+                Token::new(Separator, "(".into(), 4),
+                Token::new(Literal, "4".into(), 5),
+                Token::new(Operator, "^".into(), 6),
+                Token::new(Literal, "2".into(), 7),
+                Token::new(Separator, ")".into(), 8),
+                Token::new(Operator, "/".into(), 9),
+                Token::new(Identifier, "a".into(), 11)
+            ]
+        );
     }
 }
-
