@@ -3,7 +3,7 @@ use crate::parser::ast::Expression;
 use crate::lexer::TokenKind::{ Operator, Separator };
 use crate::parser::ast::Expression::{ Assignment, Literal, UnaryMinus, UnaryPlus, Variable };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct TokenStream {
     buffer: Vec<Token>,
     cursor: usize,
@@ -49,7 +49,7 @@ pub(crate) mod ast {
         Variable(String),
     }
 }
-
+#[derive(Clone)]
 pub(crate) struct Parser {
     symbol_table: Vec<String>,
     tokens: TokenStream,

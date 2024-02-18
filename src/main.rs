@@ -2,11 +2,13 @@ use clap::{ Parser };
 use crate::cli::{ Cli, Mode };
 use crate::interpreter::Interpreter;
 use crate::lexer::{ lex };
+use crate::repl::REPL;
 
 pub mod lexer;
 pub mod parser;
 pub mod interpreter;
 mod cli;
+mod repl;
 
 fn main() {
     let mut parser = parser::Parser::new();
@@ -15,11 +17,14 @@ fn main() {
 
     let program = || {
         match cli.mode {
-            Mode { interactive: true, exec: None } => { Ok(()) }
+            Mode { interactive: true, exec: None } => {
+                let mut repl = REPL::new();
+                repl.run()
+            }
             Mode { interactive: false, exec: Some(raw_expr) } => {
                 let tokens = lex(&raw_expr)?;
                 let ast = parser.parse(&tokens)?;
-                let result = interpreter.interpret_ast(ast)?;
+                let result = interpreter.interpret(ast)?;
                 println!("{raw_expr} = {result}");
                 Ok(())
             }

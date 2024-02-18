@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use crate::parser::ast::Expression;
 use crate::parser::ast::Expression::{ Assignment, Literal };
 
+#[derive(Clone)]
 pub(crate) struct Interpreter {
     mem: HashMap<String, Expression>,
 }
@@ -13,7 +14,7 @@ impl Interpreter {
         }
     }
 
-    pub(crate) fn interpret_ast(&mut self, ast: Expression) -> Result<f64, String> {
+    pub(crate) fn interpret(&mut self, ast: Expression) -> Result<f64, String> {
         match ast {
             Assignment(identifier, expr) => {
                 self.mem
@@ -22,34 +23,34 @@ impl Interpreter {
                         *val = *expr.clone();
                     })
                     .or_insert(*expr.clone());
-                Ok(self.interpret_ast(*expr.clone())?)
+                Ok(self.interpret(*expr.clone())?)
             }
             Expression::Addition(left, right) => {
-                Ok(self.interpret_ast(*left)? + self.interpret_ast(*right)?)
+                Ok(self.interpret(*left)? + self.interpret(*right)?)
             }
             Expression::Subtraction(left, right) => {
-                Ok(self.interpret_ast(*left)? - self.interpret_ast(*right)?)
+                Ok(self.interpret(*left)? - self.interpret(*right)?)
             }
             Expression::UnaryPlus(expr) => {
-                Ok(0f64 + self.interpret_ast(*expr)?) // Let's pretend it is somehow useful
+                Ok(0f64 + self.interpret(*expr)?) // Let's pretend it is somehow useful
             }
-            Expression::UnaryMinus(expr) => { Ok(0f64 - self.interpret_ast(*expr)?) }
-            Expression::ParenthesisExpression(expr) => { Ok(self.interpret_ast(*expr)?) }
+            Expression::UnaryMinus(expr) => { Ok(0f64 - self.interpret(*expr)?) }
+            Expression::ParenthesisExpression(expr) => { Ok(self.interpret(*expr)?) }
             Expression::Multiplication(left, right) => {
-                Ok(self.interpret_ast(*left)? * self.interpret_ast(*right)?)
+                Ok(self.interpret(*left)? * self.interpret(*right)?)
             }
             Expression::Division(left, right) => {
-                let right_operand = self.interpret_ast(*right)?;
+                let right_operand = self.interpret(*right)?;
                 if right_operand == 0.0 {
                     Err(String::from("Cannot divide by 0."))
                 } else {
-                    Ok(self.interpret_ast(*left)? / right_operand)
+                    Ok(self.interpret(*left)? / right_operand)
                 }
             }
             Literal(value) => { Ok(value) }
             Expression::Variable(identifier) => {
                 if let Some(expr) = self.mem.get(identifier.as_str()) {
-                    Ok(self.interpret_ast(expr.clone())?)
+                    Ok(self.interpret(expr.clone())?)
                 } else {
                     Err(format!("Variable {identifier} not found"))
                 }
@@ -69,7 +70,7 @@ mod test {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
         let tokens = lex("1 + 1").unwrap();
-        let res = interpreter.interpret_ast(parser.parse(&tokens).unwrap()).unwrap();
+        let res = interpreter.interpret(parser.parse(&tokens).unwrap()).unwrap();
         assert_eq!(res, 2.0);
     }
 
@@ -78,7 +79,7 @@ mod test {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
         let tokens = lex("12 + 28.6 - 23.41 * 2.3").unwrap();
-        let res = interpreter.interpret_ast(parser.parse(&tokens).unwrap()).unwrap();
+        let res = interpreter.interpret(parser.parse(&tokens).unwrap()).unwrap();
         assert_eq!(format!("{res:.3}"), "-13.243");
     }
 
@@ -87,7 +88,19 @@ mod test {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
         let tokens = lex("1/0").unwrap();
-        let res = interpreter.interpret_ast(parser.parse(&tokens).unwrap());
+        let res = interpreter.interpret(parser.parse(&tokens).unwrap());
         assert!(res.is_err());
+    }
+
+    #[test]
+    fn keeps_track_of_vars() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        interpreter.interpret(parser.parse(&lex("a = 3").unwrap()).unwrap()).unwrap();
+        let v = interpreter.interpret(parser.parse(&lex("a").unwrap()).unwrap()).unwrap();
+        assert_eq!(v, 3.0);
+        interpreter.interpret(parser.parse(&lex("a = 8").unwrap()).unwrap()).unwrap();
+        let v = interpreter.interpret(parser.parse(&lex("a").unwrap()).unwrap()).unwrap();
+        assert_eq!(v, 8.0);
     }
 }
