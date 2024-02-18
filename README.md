@@ -3,21 +3,21 @@
 Welcome to the <sup>R</sup><sub>(ust)</sub><sup>alculator</sup> repository! 🎉 This is a simple mathematical expression interpreter (and maybe later on compiler???👀) application written in Rust, created as a fun side project to explore the language and its features. The calculator can parse and evaluate basic arithmetic expressions, as well as store expression in variables and is designed to be easy to understand and extend.
 
 ## 📝 Table of Contents
-- [Getting Started](#getting-started)
-- [Features](#features)
-- [Usage](#usage)
-- [Syntax](#syntax)
-- [Operators](#operators)
-- [Separators](#separators)
-- [Identifiers](#identifiers)
-- [Literals](#literals)
-- [Steps](#steps)
-- [Lexer](#lexer)
-- [Parser](#parser)
-- [Interpreter](#interpreter)
-- [Grammar](#grammar)
-- [Contributing](#contributing)
-- [License](#license)
+- [Getting Started](#-getting-started)
+- [Features](#-features)
+- [Usage](#-usage)
+- [Syntax](#-syntax)
+- [Operators](#-operators)
+- [Separators](#-separators)
+- [Identifiers](#-identifiers)
+- [Literals](#-literals)
+- [Steps](#-steps)
+- [Lexer](#-lexer)
+- [Parser](#-parser)
+- [Interpreter](#-interpreter)
+- [Grammar](#-grammar)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ## 🚀 Getting Started
 
