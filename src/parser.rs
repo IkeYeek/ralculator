@@ -3,8 +3,6 @@ use crate::parser::ast::Expression;
 use crate::lexer::TokenKind::{Operator, Separator};
 use crate::parser::ast::Expression::{Assignment, Literal, UnaryMinus, UnaryPlus, Variable};
 
-
-
 #[derive(Debug)]
 struct TokenStream {
     buffer: Vec<Token>,
@@ -47,7 +45,7 @@ pub(crate) mod ast {
 
         Multiplication(Box<Expression>, Box<Expression>),
         Division(Box<Expression>, Box<Expression>),
-        Literal(u64),
+        Literal(f64),
         Variable(String),
     }
 }
@@ -86,7 +84,7 @@ impl Parser {
                     _ => Err(format!("Unexpected operator {token:?}"))
                 },
                 TokenKind::Literal => {
-                    let literal_value = token.raw_value.parse::<u64>().map_err(|_| "Couldn't parse token to an integer")?;
+                    let literal_value = token.raw_value.parse::<f64>().map_err(|_| "Couldn't parse token to an integer")?;
                     self.tokens.next();
                     Ok(Literal(literal_value))
                 }
@@ -263,6 +261,172 @@ impl Parser {
             }
         } else {
             Err(String::from("Trying to parse an empty string"))
+        }
+    }
+}
+#[cfg(test)]
+mod test {
+    #[cfg(test)]
+    mod parser {
+        use crate::lexer::lex;
+        use crate::parser::ast::Expression;
+        use crate::parser::{Parser};
+        use crate::parser::ast::Expression::{Addition, Multiplication, ParenthesisExpression, UnaryMinus, Variable};
+
+        #[test]
+        fn parse_assign() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("a = 1").unwrap()).unwrap(),
+                       Expression::Assignment("a".into(), Box::new(Expression::Literal(1.0))))
+        }
+
+        #[test]
+        fn parse_1() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1").unwrap()).unwrap(), Expression::Literal(1f64))
+        }
+
+        #[test]
+        fn parse_23() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("23").unwrap()).unwrap(), Expression::Literal(23f64))
+        }
+
+        #[test] fn parse_minus_1() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("-1").unwrap()).unwrap(), UnaryMinus(Box::new(Expression::Literal(1f64))))
+        }
+
+        #[test]
+        fn parse_1_plus_1() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1 + 1").unwrap()).unwrap(),
+                       Addition(Box::new(Expression::Literal(1f64)), Box::new(Expression::Literal(1f64))));
+        }
+
+        #[test]
+        fn parse_1_minus_2() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1 - 2").unwrap()).unwrap(),
+                       Expression::Subtraction(Box::new(Expression::Literal(1f64)), Box::new(Expression::Literal(2f64))));
+        }
+
+        #[test]
+        fn parse_1_times_4() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1 * 4").unwrap()).unwrap(),
+                       Expression::Multiplication(Box::new(Expression::Literal(1f64)), Box::new(Expression::Literal(4f64))));
+        }
+
+        #[test]
+        fn parse_1_times_parexpr_3_plus_4() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1 * (3 + 4)").unwrap()).unwrap(),
+                       Expression::Multiplication(Box::new(Expression::Literal(1f64)), Box::new(
+                           ParenthesisExpression(Box::new(
+                               Addition(Box::new(Expression::Literal(3f64)), Box::new(Expression::Literal(4f64)))
+                           ))
+                       ))
+            );
+        }
+
+        #[test]
+        fn parse_1_times_parexpr_3_plus_4_nospace() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1*(3+4)").unwrap()).unwrap(),
+                       Expression::Multiplication(Box::new(Expression::Literal(1f64)), Box::new(
+                           ParenthesisExpression(Box::new(
+                               Addition(Box::new(Expression::Literal(3f64)), Box::new(Expression::Literal(4f64)))
+                           ))
+                       ))
+            );
+        }
+
+        #[test]
+        fn parse_1_times_a() {
+            let mut parser = Parser::new();
+            parser.parse(&lex("a = 3").unwrap()).unwrap();  // Required, else we got an undefined symbol exception
+            assert_eq!(parser.parse(&lex("1 + a").unwrap()).unwrap(), Expression::Addition(Box::new(Expression::Literal(1f64)), Box::new(Variable(String::from("a")))));
+        }
+
+        #[test]
+        fn parse_undefined_variable() {
+            let mut parser = Parser::new();
+            assert!(parser.parse(&lex("a + b").unwrap()).is_err());
+        }
+
+        #[test]
+        fn parse_nested_parentheses() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("(1 +  2) *  3").unwrap()).unwrap(),
+                       Expression::Multiplication(
+                           Box::new(
+                               ParenthesisExpression(Box::new(
+                                   Addition(
+                                       Box::new(Expression::Literal(1f64)),
+                                       Box::new(Expression::Literal(2f64))
+                                   )
+                               ))
+                           ),
+                           Box::new(Expression::Literal(3f64))
+                       )
+            );
+        }
+
+        #[test]
+        fn parse_nested_parentheses_with_precedence() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1 + (2 *  3)").unwrap()).unwrap(),
+                       Addition(
+                           Box::new(Expression::Literal(1f64)),
+                           Box::new(
+                               ParenthesisExpression(Box::new(
+                                   Multiplication(
+                                       Box::new(Expression::Literal(2f64)),
+                                       Box::new(Expression::Literal(3f64))
+                                   )
+                               ))
+                           )
+                       )
+            );
+        }
+
+        #[test]
+        fn parse_minus_1_minus_minus_1() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("-1 - -1").unwrap()).unwrap(), Expression::Subtraction(
+                Box::new(UnaryMinus(Box::new(Expression::Literal(1f64)))), Box::new(UnaryMinus(Box::new(Expression::Literal(1f64))))
+            ))
+        }
+
+        #[test]
+        fn parse_nested_parentheses_with_precedence_and_unary() {
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lex("1 + (-2 *  3)").unwrap()).unwrap(),
+                       Expression::Addition(
+                           Box::new(Expression::Literal(1f64)),
+                           Box::new(
+                               ParenthesisExpression(Box::new(
+                                   Multiplication(
+                                       Box::new(UnaryMinus(Box::new(Expression::Literal(2f64)))),
+                                       Box::new(Expression::Literal(3f64))
+                                   )
+                               ))
+                           )
+                       )
+            );
+        }
+
+        #[test]
+        fn parse_nested_parentheses_with_precedence_and_unary_fail() {
+            let mut parser = Parser::new();
+            assert!(parser.parse(&lex("1 + (-2 *  3").unwrap()).is_err());
+        }
+
+        #[test]
+        fn parse_empty_string() {
+            let mut parser = Parser::new();
+            assert!(parser.parse(&lex("").unwrap()).is_err());
         }
     }
 }

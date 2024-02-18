@@ -30,7 +30,7 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
     let delta = buffer_start_offset + buffer.len() - trimmed_start_whitespaces.len();
     let regexs = [
         (TokenKind::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
-        (TokenKind::Literal, Regex::new(r"^\d+").unwrap()),
+        (TokenKind::Literal, Regex::new(r"^\d+([.]\d+)?(e[+-]?\d+)?").unwrap()),
         (TokenKind::Operator, Regex::new(r"^[+-/*^=]").unwrap()),
         (TokenKind::Separator, Regex::new(r"^[()]").unwrap())
     ];
@@ -59,7 +59,7 @@ pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
 }
 
 #[cfg(test)]
-mod test {
+pub(crate) mod test {
     use crate::lexer;
     use crate::lexer::TokenKind::{Identifier, Literal, Operator, Separator};
     use crate::lexer::Token;
