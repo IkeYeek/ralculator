@@ -1,17 +1,14 @@
 use std::collections::HashMap;
 use crate::parser::ast::Expression;
 use crate::parser::ast::Expression::{Assignment, Literal};
-use crate::parser::Parser;
 
 pub(crate) struct Interpreter {
-    parser: Parser,
     mem: HashMap<String, Expression>,
 }
 
 impl Interpreter {
     pub(crate) fn new() -> Self {
         Self {
-            parser: Parser::new(),
             mem: HashMap::new(),
         }
     }
@@ -49,7 +46,7 @@ impl Interpreter {
                if let Some(expr) = self.mem.get(identifier.as_str()) {
                    Ok(self.interpret_ast(expr.clone())?)
                } else {
-                   Err(String::from(format!("Variable {} not found", identifier)))
+                   Err(format!("Variable {identifier} not found"))
                }
            }
        }

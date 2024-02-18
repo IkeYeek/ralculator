@@ -1,29 +1,26 @@
 use regex::Regex;
-use crate::lexer::token::Kind::{Identifier, Literal, Operator, Separator};
-use crate::lexer::token::{ Token};
+use crate::lexer::Kind::{Identifier, Literal, Operator, Separator};
 
-pub(crate) mod token {
-    #[derive(Debug, PartialEq, Clone)]
-    pub(crate) enum Kind {
-        Identifier,
-        Operator,
-        Separator,
-        Literal,
-    }
-    #[derive(Debug, PartialEq, Clone)]
-    pub(crate) struct Token {
-        pub(crate) kind: Kind,
-        pub(crate) raw_value: String,
-        pub(crate) position: usize,
-    }
+#[derive(Debug, PartialEq, Clone)]
+pub(crate) enum TokenKind {
+    Identifier,
+    Operator,
+    Separator,
+    Literal,
+}
+#[derive(Debug, PartialEq, Clone)]
+pub(crate) struct Token {
+    pub(crate) kind: TokenKind,
+    pub(crate) raw_value: String,
+    pub(crate) position: usize,
+}
 
-    impl Token {
-        pub(crate) fn new(kind: Kind, raw_value: String, position: usize) -> Self {
-            Token {
-                kind,
-                raw_value,
-                position
-            }
+impl Token {
+    pub(crate) fn new(kind: TokenKind, raw_value: String, position: usize) -> Self {
+        Token {
+            kind,
+            raw_value,
+            position
         }
     }
 }
@@ -33,10 +30,10 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
     let trimmed_start_whitespaces = buffer.trim_start();
     let delta = buffer_start_offset + buffer.len() - trimmed_start_whitespaces.len();
     let regexs = [
-        (Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
-        (Literal, Regex::new(r"^\d+").unwrap()),
-        (Operator, Regex::new(r"^[+-/*^=]").unwrap()),
-        (Separator, Regex::new(r"^[()]").unwrap())
+        (TokenKind::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
+        (TokenKind::Literal, Regex::new(r"^\d+").unwrap()),
+        (TokenKind::Operator, Regex::new(r"^[+-/*^=]").unwrap()),
+        (TokenKind::Separator, Regex::new(r"^[()]").unwrap())
     ];
     for r in regexs {
         if let Some(res) = r.1.find(trimmed_start_whitespaces) {
@@ -49,7 +46,7 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
 pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
     let mut token_vector: Vec<Token> = Vec::new();
     let mut cursor: usize = 0;
-    let mut buffer = buffer.trim();
+    let buffer = buffer.trim();
     while cursor < buffer.len() {
         match next_token_in_buff(&buffer[cursor..], cursor) {
             Ok(token) => {
@@ -60,5 +57,52 @@ pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
         }
     }
     Ok(token_vector)
+}
+
+#[cfg(test)]
+mod test {
+    use crate::lexer;
+    use crate::lexer::TokenKind::{Identifier, Literal, Operator, Separator};
+    use crate::lexer::Token;
+
+    #[test]
+    fn lex_returns_result() {
+        assert_eq!(lexer::lex("".into()), Ok(Vec::new()))
+    }
+
+    #[test]
+    fn lex_returns_1_plus_1() {
+        assert_eq!(lexer::lex("1 + 1".into()), Ok(vec![
+            Token::new(Literal, "1".into(), 0),
+            Token::new(Operator, "+".into(), 2),
+            Token::new(Literal, "1".into(), 4),
+        ]));
+    }
+
+    #[test]
+    fn lex_ignores_whitespace() {
+        assert_eq!(lexer::lex("1 +  1".into()), Ok(vec![
+            Token::new(Literal, "1".into(),  0),
+            Token::new(Operator, "+".into(),  2),
+            Token::new(Literal, "1".into(),  5),
+        ]));
+    }
+
+    #[test]
+    fn lex_returns_complex() {
+        assert_eq!(lexer::lex("1+1*(4^2)/ a".into()).unwrap(), vec![
+            Token::new(Literal, "1".into(), 0),
+            Token::new(Operator, "+".into(), 1),
+            Token::new(Literal, "1".into(), 2),
+            Token::new(Operator, "*".into(), 3),
+            Token::new(Separator, "(".into(), 4),
+            Token::new(Literal, "4".into(), 5),
+            Token::new(Operator, "^".into(), 6),
+            Token::new(Literal, "2".into(), 7),
+            Token::new(Separator, ")".into(), 8),
+            Token::new(Operator, "/".into(), 9),
+            Token::new(Identifier, "a".into(), 11),
+        ]);
+    }
 }
 
