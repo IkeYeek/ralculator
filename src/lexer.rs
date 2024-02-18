@@ -1,5 +1,4 @@
 use regex::Regex;
-use crate::lexer::Kind::{Identifier, Literal, Operator, Separator};
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum TokenKind {
