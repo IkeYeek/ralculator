@@ -39,7 +39,12 @@ impl Interpreter {
                Ok(self.interpret_ast(*left)? * self.interpret_ast(*right)?)
            }
            Expression::Division(left, right) => {
-               Ok(self.interpret_ast(*left)? / self.interpret_ast(*right)?)
+               let right_operand = self.interpret_ast(*right)?;
+               if right_operand != 0.0 {
+                   Ok(self.interpret_ast(*left)? / right_operand)
+               } else {
+                   Err(String::from("Cannot divide by 0."))
+               }
            }
            Literal(value) => { Ok(value) }
            Expression::Variable(identifier) => {
@@ -51,6 +56,38 @@ impl Interpreter {
            }
        }
     }
+}
 
+#[cfg(test)]
+mod test {
+    use crate::interpreter::Interpreter;
+    use crate::lexer::lex;
+    use crate::parser::Parser;
 
+    #[test]
+    fn interpret_1_plus_1() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        let tokens = lex("1 + 1").unwrap();
+        let res = interpreter.interpret_ast(parser.parse(&tokens).unwrap()).unwrap();
+        assert_eq!(res, 2.0);
+    }
+
+    #[test]
+    fn interpret_longer_numbers() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        let tokens = lex("12 + 28.6 - 23.41 * 2.3").unwrap();
+        let res = interpreter.interpret_ast(parser.parse(&tokens).unwrap()).unwrap();
+        assert_eq!(format!("{res:.3}"), "-13.243");
+    }
+
+    #[test]
+    fn cannot_divide_by_zero() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        let tokens = lex("1/0").unwrap();
+        let res = interpreter.interpret_ast(parser.parse(&tokens).unwrap());
+        assert!(res.is_err());
+    }
 }

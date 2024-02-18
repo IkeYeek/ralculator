@@ -112,7 +112,7 @@ impl Parser {
                                                 Expression::ParenthesisExpression(Box::new(expr))
                                             )
                                         } else {
-                                            Err(format!("Expected ')', got {:?}, which is definitly not ')'", token.raw_value))
+                                            Err(format!("Expected ')', got {:?}, which is definitely not ')'", token.raw_value))
                                         }
                                     },
                                     None => Err(String::from("Expected ')', got nothing bruuuuh"))
@@ -315,14 +315,14 @@ mod test {
         fn parse_1_times_4() {
             let mut parser = Parser::new();
             assert_eq!(parser.parse(&lex("1 * 4").unwrap()).unwrap(),
-                       Expression::Multiplication(Box::new(Expression::Literal(1f64)), Box::new(Expression::Literal(4f64))));
+                       Multiplication(Box::new(Expression::Literal(1f64)), Box::new(Expression::Literal(4f64))));
         }
 
         #[test]
         fn parse_1_times_parexpr_3_plus_4() {
             let mut parser = Parser::new();
             assert_eq!(parser.parse(&lex("1 * (3 + 4)").unwrap()).unwrap(),
-                       Expression::Multiplication(Box::new(Expression::Literal(1f64)), Box::new(
+                       Multiplication(Box::new(Expression::Literal(1f64)), Box::new(
                            ParenthesisExpression(Box::new(
                                Addition(Box::new(Expression::Literal(3f64)), Box::new(Expression::Literal(4f64)))
                            ))
@@ -334,7 +334,7 @@ mod test {
         fn parse_1_times_parexpr_3_plus_4_nospace() {
             let mut parser = Parser::new();
             assert_eq!(parser.parse(&lex("1*(3+4)").unwrap()).unwrap(),
-                       Expression::Multiplication(Box::new(Expression::Literal(1f64)), Box::new(
+                       Multiplication(Box::new(Expression::Literal(1f64)), Box::new(
                            ParenthesisExpression(Box::new(
                                Addition(Box::new(Expression::Literal(3f64)), Box::new(Expression::Literal(4f64)))
                            ))
@@ -346,7 +346,7 @@ mod test {
         fn parse_1_times_a() {
             let mut parser = Parser::new();
             parser.parse(&lex("a = 3").unwrap()).unwrap();  // Required, else we got an undefined symbol exception
-            assert_eq!(parser.parse(&lex("1 + a").unwrap()).unwrap(), Expression::Addition(Box::new(Expression::Literal(1f64)), Box::new(Variable(String::from("a")))));
+            assert_eq!(parser.parse(&lex("1 + a").unwrap()).unwrap(), Addition(Box::new(Expression::Literal(1f64)), Box::new(Variable(String::from("a")))));
         }
 
         #[test]
@@ -359,7 +359,7 @@ mod test {
         fn parse_nested_parentheses() {
             let mut parser = Parser::new();
             assert_eq!(parser.parse(&lex("(1 +  2) *  3").unwrap()).unwrap(),
-                       Expression::Multiplication(
+                       Multiplication(
                            Box::new(
                                ParenthesisExpression(Box::new(
                                    Addition(
@@ -403,7 +403,7 @@ mod test {
         fn parse_nested_parentheses_with_precedence_and_unary() {
             let mut parser = Parser::new();
             assert_eq!(parser.parse(&lex("1 + (-2 *  3)").unwrap()).unwrap(),
-                       Expression::Addition(
+                       Addition(
                            Box::new(Expression::Literal(1f64)),
                            Box::new(
                                ParenthesisExpression(Box::new(

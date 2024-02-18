@@ -1,4 +1,4 @@
-Was too borer to make music tonight so here is a simple calculator using rust to parse simple expressions because I want to learn rust lmao
+Was too bored to make music tonight so here is a simple calculator using rust to parse simple expressions because I want to learn rust lmao
 
 # Disclaimer
 It is late, I don't know rust very well and I have not written a single parser/compiler/interpreter/actually somehow a little theorical thing in like two years so the code in this repo will probably be terrfying...
@@ -15,20 +15,27 @@ a = 3 => a=4
 a * 2 => 8
 b * 2 => b is not defined
 
+```text
+note that it has context. If I do for example in interactive mode:
+a = 4 [enter] => 4
+b = a * 2 [enter] => 8
+b [enter] => 8
+a = 2 [enter] => 2
+b [enter] => 4
+
+```
+
 # Operators
 OPS:
-- BINOPS:
+- Binary operators:
   - PLUS (+)
   - MINUS (-)
   - ASSIGN (=)
   - TIMES (*)
   - DIVIDE (/)
-  - POW (^)
-- UNOPS
+- Unary operators
   - UNARY_PLUS (+)
   - UNARY_MINUS (-)
-- LEFT_PARENTHESIS
-- RIGHT_PARENTHESIS
 
 # Separators
 - (
@@ -38,7 +45,7 @@ OPS:
 simple sequences of letters matching this simple regex: `^[a-zA-Z_]+$`
 
 # Litterals
-simple numbers, integers for now
+numbers: integers, decimal or scientific notation, regex: `^\d+([.]\d+)?(e[+-]?\d+)?`
 
 # Steps:
 - Scanning / parsing
