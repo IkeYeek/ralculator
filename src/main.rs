@@ -2,7 +2,7 @@ use clap::{ Parser };
 use crate::cli::{ Cli, Mode };
 use crate::interpreter::Interpreter;
 use crate::lexer::{ lex };
-use crate::repl::REPL;
+use crate::repl::Repl;
 
 pub mod lexer;
 pub mod parser;
@@ -18,7 +18,7 @@ fn main() {
     let program = || {
         match cli.mode {
             Mode { interactive: true, exec: None } => {
-                let mut repl = REPL::new();
+                let mut repl = Repl::new();
                 repl.run()
             }
             Mode { interactive: false, exec: Some(raw_expr) } => {

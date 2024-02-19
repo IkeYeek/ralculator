@@ -14,16 +14,41 @@ impl Interpreter {
         }
     }
 
+    fn is_assignation_legal(&self, identifier_name: &str, expression: &Expression) -> bool {
+        match expression {
+            Assignment(_, _) | Literal(_) => { true }
+            Expression::Variable(variable_name) => {
+                identifier_name != variable_name &&
+                    self.is_assignation_legal(identifier_name, self.mem.get(variable_name).unwrap())
+            }
+            | Expression::Addition(left, right)
+            | Expression::Subtraction(left, right)
+            | Expression::Multiplication(left, right)
+            | Expression::Division(left, right) => {
+                self.is_assignation_legal(identifier_name, left) &&
+                    self.is_assignation_legal(identifier_name, right)
+            }
+            | Expression::UnaryPlus(expr)
+            | Expression::UnaryMinus(expr)
+            | Expression::ParenthesisExpression(expr) => {
+                self.is_assignation_legal(identifier_name, expr)
+            }
+        }
+    }
+
     pub(crate) fn interpret(&mut self, ast: Expression) -> Result<f64, String> {
         match ast {
             Assignment(identifier, expr) => {
-                self.mem
-                    .entry(identifier)
-                    .and_modify(|val| {
-                        *val = *expr.clone();
-                    })
-                    .or_insert(*expr.clone());
-                Ok(self.interpret(*expr.clone())?)
+                if self.is_assignation_legal(&identifier, &expr) {
+                    self.mem
+                        .entry(identifier.clone())
+                        .and_modify(|val| {
+                            *val = *expr.clone();
+                        })
+                        .or_insert(*expr.clone());
+                    return self.interpret(*expr.clone());
+                }
+                Err(String::from("Illegal assignation"))
             }
             Expression::Addition(left, right) => {
                 Ok(self.interpret(*left)? + self.interpret(*right)?)
@@ -102,5 +127,22 @@ mod test {
         interpreter.interpret(parser.parse(&lex("a = 8").unwrap()).unwrap()).unwrap();
         let v = interpreter.interpret(parser.parse(&lex("a").unwrap()).unwrap()).unwrap();
         assert_eq!(v, 8.0);
+    }
+
+    #[test]
+    fn crash_circular_ref_simple() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        interpreter.interpret(parser.parse(&lex("a = 3").unwrap()).unwrap()).unwrap();
+        assert!(interpreter.interpret(parser.parse(&lex("a = a").unwrap()).unwrap()).is_err());
+    }
+
+    #[test]
+    fn crash_circular_ref() {
+        let mut parser = Parser::new();
+        let mut interpreter = Interpreter::new();
+        interpreter.interpret(parser.parse(&lex("a = 3").unwrap()).unwrap()).unwrap();
+        interpreter.interpret(parser.parse(&lex("b = a").unwrap()).unwrap()).unwrap();
+        assert!(interpreter.interpret(parser.parse(&lex("a = b").unwrap()).unwrap()).is_err());
     }
 }

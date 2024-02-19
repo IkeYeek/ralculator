@@ -11,7 +11,12 @@
 
 Welcome to the <sup>R</sup><sub>(ust)</sub><sup>alculator</sup> repository! 🎉 This is a simple mathematical expression interpreter (and maybe later on compiler???👀) application written in Rust, created as a fun side project to explore the language and its features. The calculator can parse and evaluate basic arithmetic expressions, as well as store expression in variables and is designed to be easy to understand and extend.
 ## 🚧 TODO
-REPL
+- fix circle reference bug. atm, if I do:
+  - a = 3
+  - b = a
+  - a = a
+
+the program crashes.
 
 ## 📝 Table of Contents
 - [Getting Started](#-getting-started)

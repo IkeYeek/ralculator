@@ -4,12 +4,12 @@ use crate::interpreter::Interpreter;
 use crate::lexer::lex;
 use crate::parser::Parser;
 
-pub(crate) struct REPL {
+pub(crate) struct Repl {
     parser: Parser,
     interpreter: Interpreter,
 }
 
-impl REPL {
+impl Repl {
     pub(crate) fn new() -> Self {
         Self {
             parser: Parser::new(),
@@ -17,7 +17,7 @@ impl REPL {
         }
     }
     pub(crate) fn run(&mut self) -> Result<(), String> {
-        REPL::greet();
+        Repl::greet();
         let mut line_buffer = String::new();
         let mut eof = false;
         while !eof {
@@ -36,10 +36,21 @@ impl REPL {
                 println!();
                 continue;
             }
-            let tokens = lex(&line_buffer)?;
-            let ast = self.parser.parse(&tokens)?;
-            let result = self.interpreter.interpret(ast)?;
-            println!("= {}", result);
+            match lex(&line_buffer) {
+                Ok(tokens) => {
+                    match self.parser.parse(&tokens) {
+                        Ok(ast) => {
+                            let result = self.interpreter.interpret(ast);
+                            match result {
+                                Ok(result) => println!("= {result}"),
+                                Err(e) => eprintln!("{e}"),
+                            }
+                        }
+                        Err(e) => eprintln!("{e}"),
+                    }
+                }
+                Err(e) => eprintln!("{e}"),
+            }
         }
         Ok(())
     }
