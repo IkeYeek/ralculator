@@ -37,7 +37,7 @@ fn main() {
     };
 
     match program() {
-        Ok(()) => println!("Goodby."),
+        Ok(()) => println!("Goodbye."),
         Err(e) => eprintln!("{e}"),
     }
 }
