@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::parser::ast::Expression;
-use crate::parser::ast::Expression::{ Assignment, Literal };
+use crate::parser::ast::Expression::{Assignment, Literal};
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub(crate) struct Interpreter {
@@ -16,19 +16,20 @@ impl Interpreter {
 
     fn is_assignation_legal(&self, identifier_name: &str, expression: &Expression) -> bool {
         match expression {
-            Assignment(_, _) | Literal(_) => { true }
+            Assignment(_, _) | Literal(_) => true,
             Expression::Variable(variable_name) => {
-                identifier_name != variable_name &&
-                    self.is_assignation_legal(identifier_name, self.mem.get(variable_name).unwrap())
+                identifier_name != variable_name
+                    && self
+                        .is_assignation_legal(identifier_name, self.mem.get(variable_name).unwrap())
             }
-            | Expression::Addition(left, right)
+            Expression::Addition(left, right)
             | Expression::Subtraction(left, right)
             | Expression::Multiplication(left, right)
             | Expression::Division(left, right) => {
-                self.is_assignation_legal(identifier_name, left) &&
-                    self.is_assignation_legal(identifier_name, right)
+                self.is_assignation_legal(identifier_name, left)
+                    && self.is_assignation_legal(identifier_name, right)
             }
-            | Expression::UnaryPlus(expr)
+            Expression::UnaryPlus(expr)
             | Expression::UnaryMinus(expr)
             | Expression::ParenthesisExpression(expr) => {
                 self.is_assignation_legal(identifier_name, expr)
@@ -59,8 +60,8 @@ impl Interpreter {
             Expression::UnaryPlus(expr) => {
                 Ok(0f64 + self.interpret(*expr)?) // Let's pretend it is somehow useful
             }
-            Expression::UnaryMinus(expr) => { Ok(0f64 - self.interpret(*expr)?) }
-            Expression::ParenthesisExpression(expr) => { Ok(self.interpret(*expr)?) }
+            Expression::UnaryMinus(expr) => Ok(0f64 - self.interpret(*expr)?),
+            Expression::ParenthesisExpression(expr) => Ok(self.interpret(*expr)?),
             Expression::Multiplication(left, right) => {
                 Ok(self.interpret(*left)? * self.interpret(*right)?)
             }
@@ -72,7 +73,7 @@ impl Interpreter {
                     Ok(self.interpret(*left)? / right_operand)
                 }
             }
-            Literal(value) => { Ok(value) }
+            Literal(value) => Ok(value),
             Expression::Variable(identifier) => {
                 if let Some(expr) = self.mem.get(identifier.as_str()) {
                     Ok(self.interpret(expr.clone())?)
@@ -95,7 +96,9 @@ mod test {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
         let tokens = lex("1 + 1").unwrap();
-        let res = interpreter.interpret(parser.parse(&tokens).unwrap()).unwrap();
+        let res = interpreter
+            .interpret(parser.parse(&tokens).unwrap())
+            .unwrap();
         assert_eq!(res, 2.0);
     }
 
@@ -104,7 +107,9 @@ mod test {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
         let tokens = lex("12 + 28.6 - 23.41 * 2.3").unwrap();
-        let res = interpreter.interpret(parser.parse(&tokens).unwrap()).unwrap();
+        let res = interpreter
+            .interpret(parser.parse(&tokens).unwrap())
+            .unwrap();
         assert_eq!(format!("{res:.3}"), "-13.243");
     }
 
@@ -121,11 +126,19 @@ mod test {
     fn keeps_track_of_vars() {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
-        interpreter.interpret(parser.parse(&lex("a = 3").unwrap()).unwrap()).unwrap();
-        let v = interpreter.interpret(parser.parse(&lex("a").unwrap()).unwrap()).unwrap();
+        interpreter
+            .interpret(parser.parse(&lex("a = 3").unwrap()).unwrap())
+            .unwrap();
+        let v = interpreter
+            .interpret(parser.parse(&lex("a").unwrap()).unwrap())
+            .unwrap();
         assert_eq!(v, 3.0);
-        interpreter.interpret(parser.parse(&lex("a = 8").unwrap()).unwrap()).unwrap();
-        let v = interpreter.interpret(parser.parse(&lex("a").unwrap()).unwrap()).unwrap();
+        interpreter
+            .interpret(parser.parse(&lex("a = 8").unwrap()).unwrap())
+            .unwrap();
+        let v = interpreter
+            .interpret(parser.parse(&lex("a").unwrap()).unwrap())
+            .unwrap();
         assert_eq!(v, 8.0);
     }
 
@@ -133,16 +146,26 @@ mod test {
     fn crash_circular_ref_simple() {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
-        interpreter.interpret(parser.parse(&lex("a = 3").unwrap()).unwrap()).unwrap();
-        assert!(interpreter.interpret(parser.parse(&lex("a = a").unwrap()).unwrap()).is_err());
+        interpreter
+            .interpret(parser.parse(&lex("a = 3").unwrap()).unwrap())
+            .unwrap();
+        assert!(interpreter
+            .interpret(parser.parse(&lex("a = a").unwrap()).unwrap())
+            .is_err());
     }
 
     #[test]
     fn crash_circular_ref() {
         let mut parser = Parser::new();
         let mut interpreter = Interpreter::new();
-        interpreter.interpret(parser.parse(&lex("a = 3").unwrap()).unwrap()).unwrap();
-        interpreter.interpret(parser.parse(&lex("b = a").unwrap()).unwrap()).unwrap();
-        assert!(interpreter.interpret(parser.parse(&lex("a = b").unwrap()).unwrap()).is_err());
+        interpreter
+            .interpret(parser.parse(&lex("a = 3").unwrap()).unwrap())
+            .unwrap();
+        interpreter
+            .interpret(parser.parse(&lex("b = a").unwrap()).unwrap())
+            .unwrap();
+        assert!(interpreter
+            .interpret(parser.parse(&lex("a = b").unwrap()).unwrap())
+            .is_err());
     }
 }

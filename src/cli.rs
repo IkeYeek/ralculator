@@ -1,4 +1,4 @@
-use clap::{ Args };
+use clap::Args;
 
 /// Simple mathematical expression program
 #[derive(clap::Parser)]

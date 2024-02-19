@@ -1,8 +1,8 @@
-use std::io;
-use std::io::Write;
 use crate::interpreter::Interpreter;
 use crate::lexer::lex;
 use crate::parser::Parser;
+use std::io;
+use std::io::Write;
 
 pub(crate) struct Repl {
     parser: Parser,
@@ -23,32 +23,26 @@ impl Repl {
         while !eof {
             line_buffer.clear();
             print!("> ");
-            io
-                ::stdout()
-                .flush()
-                .map_err(|e| e.to_string())?;
-            eof =
-                io
-                    ::stdin()
-                    .read_line(&mut line_buffer)
-                    .map_err(|err| err.to_string())? == 1; // As we are reading lines, if we only had 1 character it's a newline (let's say we live in a world with only LF, perfect world imo)
+            io::stdout().flush().map_err(|e| e.to_string())?;
+            eof = io::stdin()
+                .read_line(&mut line_buffer)
+                .map_err(|err| err.to_string())?
+                == 1; // As we are reading lines, if we only had 1 character it's a newline (let's say we live in a world with only LF, perfect world imo)
             if eof {
                 println!();
                 continue;
             }
             match lex(&line_buffer) {
-                Ok(tokens) => {
-                    match self.parser.parse(&tokens) {
-                        Ok(ast) => {
-                            let result = self.interpreter.interpret(ast);
-                            match result {
-                                Ok(result) => println!("= {result}"),
-                                Err(e) => eprintln!("{e}"),
-                            }
+                Ok(tokens) => match self.parser.parse(&tokens) {
+                    Ok(ast) => {
+                        let result = self.interpreter.interpret(ast);
+                        match result {
+                            Ok(result) => println!("= {result}"),
+                            Err(e) => eprintln!("{e}"),
                         }
-                        Err(e) => eprintln!("{e}"),
                     }
-                }
+                    Err(e) => eprintln!("{e}"),
+                },
                 Err(e) => eprintln!("{e}"),
             }
         }
@@ -63,7 +57,10 @@ impl Repl {
         println!("=== Interactive mathematical expression calculator ===");
         println!("{}Usage:", Self::tabs(1));
         println!("{}- Supported operator: +, -, *, /.", Self::tabs(2));
-        println!("{}- Supports assigning expressions to variables.", Self::tabs(2));
+        println!(
+            "{}- Supports assigning expressions to variables.",
+            Self::tabs(2)
+        );
         println!("{}- Supports parenthesis expression.", Self::tabs(2));
         println!("{}Press enter on an empty line to exit!", Self::tabs(1));
     }

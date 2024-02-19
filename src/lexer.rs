@@ -30,7 +30,10 @@ fn next_token_in_buff(buffer: &str, buffer_start_offset: usize) -> Result<Token,
     let delta = buffer_start_offset + buffer.len() - trimmed_start_whitespaces.len();
     let regexs = [
         (TokenKind::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
-        (TokenKind::Literal, Regex::new(r"^\d+([.]\d+)?(e[+-]?\d+)?").unwrap()),
+        (
+            TokenKind::Literal,
+            Regex::new(r"^\d+([.]\d+)?(e[+-]?\d+)?").unwrap(),
+        ),
         (TokenKind::Operator, Regex::new(r"^[+-/*^=]").unwrap()),
         (TokenKind::Separator, Regex::new(r"^[()]").unwrap()),
     ];
@@ -63,8 +66,8 @@ pub(crate) fn lex(buffer: &str) -> Result<Vec<Token>, String> {
 #[cfg(test)]
 pub(crate) mod test {
     use crate::lexer;
-    use crate::lexer::TokenKind::{ Identifier, Literal, Operator, Separator };
     use crate::lexer::Token;
+    use crate::lexer::TokenKind::{Identifier, Literal, Operator, Separator};
 
     #[test]
     fn lex_returns_result() {
@@ -75,13 +78,11 @@ pub(crate) mod test {
     fn lex_returns_1_plus_1() {
         assert_eq!(
             lexer::lex("1 + 1".into()),
-            Ok(
-                vec![
-                    Token::new(Literal, "1".into(), 0),
-                    Token::new(Operator, "+".into(), 2),
-                    Token::new(Literal, "1".into(), 4)
-                ]
-            )
+            Ok(vec![
+                Token::new(Literal, "1".into(), 0),
+                Token::new(Operator, "+".into(), 2),
+                Token::new(Literal, "1".into(), 4)
+            ])
         );
     }
 
@@ -89,13 +90,11 @@ pub(crate) mod test {
     fn lex_ignores_whitespace() {
         assert_eq!(
             lexer::lex("1 +  1".into()),
-            Ok(
-                vec![
-                    Token::new(Literal, "1".into(), 0),
-                    Token::new(Operator, "+".into(), 2),
-                    Token::new(Literal, "1".into(), 5)
-                ]
-            )
+            Ok(vec![
+                Token::new(Literal, "1".into(), 0),
+                Token::new(Operator, "+".into(), 2),
+                Token::new(Literal, "1".into(), 5)
+            ])
         );
     }
 
