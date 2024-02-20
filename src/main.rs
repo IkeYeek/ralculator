@@ -4,13 +4,12 @@ use ralculator::interpreter::Interpreter;
 use ralculator::cli::{Cli, Mode};
 use ralculator::repl::Repl;
 
-fn main() {
+fn program() -> Result<(), String> {
     let lexer = Lexer::new();
     let mut parser = ralculator::parser::Parser::new();
     let mut interpreter = Interpreter::new();
     let cli = Cli::parse();
-
-    let program = || match cli.mode {
+    match cli.mode {
         Mode {
             interactive: true,
             exec: None,
@@ -29,8 +28,10 @@ fn main() {
             Ok(())
         }
         _ => Err(String::from("wtf")),
-    };
+    }
+}
 
+fn main() {
     match program() {
         Ok(()) => println!("Goodbye."),
         Err(e) => eprintln!("{e}"),
