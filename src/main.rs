@@ -1,6 +1,6 @@
 use crate::cli::{Cli, Mode};
 use crate::interpreter::Interpreter;
-use crate::lexer::lex;
+use crate::lexer::{Lexer};
 use crate::repl::Repl;
 use clap::Parser;
 
@@ -11,6 +11,7 @@ pub mod parser;
 mod repl;
 
 fn main() {
+    let lexer = Lexer::new();
     let mut parser = parser::Parser::new();
     let mut interpreter = Interpreter::new();
     let cli = Cli::parse();
@@ -27,7 +28,7 @@ fn main() {
             interactive: false,
             exec: Some(raw_expr),
         } => {
-            let tokens = lex(&raw_expr)?;
+            let tokens = lexer.lex(&raw_expr)?;
             let ast = parser.parse(&tokens)?;
             let result = interpreter.interpret(ast)?;
             println!("{raw_expr} = {result}");

@@ -1,10 +1,11 @@
 use crate::interpreter::Interpreter;
-use crate::lexer::lex;
+use crate::lexer::{Lexer};
 use crate::parser::Parser;
 use std::io;
 use std::io::Write;
 
 pub(crate) struct Repl {
+    lexer: Lexer,
     parser: Parser,
     interpreter: Interpreter,
 }
@@ -14,6 +15,7 @@ impl Repl {
         Self {
             parser: Parser::new(),
             interpreter: Interpreter::new(),
+            lexer: Lexer::new(),
         }
     }
     pub(crate) fn run(&mut self) -> Result<(), String> {
@@ -32,7 +34,7 @@ impl Repl {
                 println!();
                 continue;
             }
-            match lex(&line_buffer) {
+            match self.lexer.lex(&line_buffer) {
                 Ok(tokens) => match self.parser.parse(&tokens) {
                     Ok(ast) => {
                         let result = self.interpreter.interpret(ast);
