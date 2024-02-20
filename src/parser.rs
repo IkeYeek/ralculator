@@ -66,17 +66,11 @@ impl Parser {
                 Operator => match token.raw_value.as_str() {
                     "+" => {
                         self.tokens.next();
-                        match self.parse_factor() {
-                            Ok(factor) => Ok(UnaryPlus(Box::new(factor))),
-                            Err(e) => Err(e),
-                        }
+                        Ok(UnaryPlus(Box::new(self.parse_factor()?)))
                     }
                     "-" => {
                         self.tokens.next();
-                        match self.parse_factor() {
-                            Ok(factor) => Ok(UnaryMinus(Box::new(factor))),
-                            Err(e) => Err(e),
-                        }
+                        Ok(UnaryMinus(Box::new(self.parse_factor()?)))
                     }
                     _ => Err(format!("Unexpected operator {token:?}")),
                 },
@@ -101,23 +95,20 @@ impl Parser {
                 Separator => {
                     if let "(" = token.raw_value.as_str() {
                         self.tokens.next();
-                        let expr = self.parse_expr();
-                        match expr {
-                            Ok(expr) => match self.tokens.curr() {
-                                Some(token) => {
-                                    if token.kind == Separator && token.raw_value.as_str() == ")" {
-                                        self.tokens.next();
-                                        Ok(Expression::ParenthesisExpression(Box::new(expr)))
-                                    } else {
-                                        Err(format!(
-                                            "Expected ')', got {:?}, which is definitely not ')'",
-                                            token.raw_value
-                                        ))
-                                    }
+                        let expr = self.parse_expr()?;
+                        match self.tokens.curr() {
+                            Some(token) => {
+                                if token.kind == Separator && token.raw_value.as_str() == ")" {
+                                    self.tokens.next();
+                                    Ok(Expression::ParenthesisExpression(Box::new(expr)))
+                                } else {
+                                    Err(format!(
+                                        "Expected ')', got {:?}, which is definitely not ')'",
+                                        token.raw_value
+                                    ))
                                 }
-                                None => Err(String::from("Expected ')', got nothing bruuuuh")),
-                            },
-                            Err(e) => Err(e),
+                            }
+                            None => Err(String::from("Expected ')', got nothing bruuuuh")),
                         }
                     } else {
                         Err(format!("Expected a '(' got {:?}", token.raw_value))
@@ -134,25 +125,19 @@ impl Parser {
                 Operator => match token.raw_value.as_str() {
                     "*" => {
                         self.tokens.next();
-                        let factor = self.parse_factor();
-                        match factor {
-                            Ok(factor) => self.parse_term_prime(Expression::Multiplication(
-                                Box::from(left),
-                                Box::from(factor),
-                            )),
-                            Err(e) => Err(e),
-                        }
+                        let factor = self.parse_factor()?;
+                        self.parse_term_prime(Expression::Multiplication(
+                            Box::from(left),
+                            Box::from(factor),
+                        ))
                     }
                     "/" => {
                         self.tokens.next();
-                        let factor = self.parse_factor();
-                        match factor {
-                            Ok(factor) => self.parse_term_prime(Expression::Division(
-                                Box::from(left),
-                                Box::from(factor),
-                            )),
-                            Err(e) => Err(e),
-                        }
+                        let factor = self.parse_factor()?;
+                        self.parse_term_prime(Expression::Division(
+                            Box::from(left),
+                            Box::from(factor),
+                        ))
                     }
                     _ => Ok(left),
                 },
@@ -207,16 +192,10 @@ impl Parser {
                             && assignment_token.raw_value.as_str() == "=" =>
                     {
                         self.tokens.next();
-                        let maybe_expr = self.parse_expr();
-                        match maybe_expr {
-                            Ok(expr) => {
-                                if !self.symbol_table.contains(&idt_token_clone.raw_value) {
-                                    self.symbol_table.push(idt_token_clone.clone().raw_value);
-                                }
-                                Ok(Assignment(idt_token_clone.raw_value, Box::new(expr)))
-                            }
-                            Err(e) => Err(e),
+                        if !self.symbol_table.contains(&idt_token_clone.raw_value) {
+                            self.symbol_table.push(idt_token_clone.clone().raw_value);
                         }
+                        Ok(Assignment(idt_token_clone.raw_value, Box::new(self.parse_expr()?)))
                     }
                     _ => Err(String::from("Expected an = after the identifier")),
                 }
