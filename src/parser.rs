@@ -1,7 +1,7 @@
 use crate::lexer::tokens::Kind::{Operator, Separator};
 use crate::lexer::tokens::{Kind, Token, TokenStream};
 use crate::parser::ast::Expression;
-use crate::parser::ast::Expression::{Assignment, EOF, Literal, UnaryMinus, UnaryPlus, Variable};
+use crate::parser::ast::Expression::{Assignment, Eof, Literal, UnaryMinus, UnaryPlus, Variable};
 
 pub(crate) mod ast {
     #[derive(Debug, PartialEq, Clone)]
@@ -19,7 +19,7 @@ pub(crate) mod ast {
         Division(Box<Expression>, Box<Expression>),
         Literal(f64),
         Variable(String),
-        EOF,
+        Eof,
     }
 }
 #[derive(Clone)]
@@ -209,7 +209,7 @@ impl Parser {
                 },
             }
         } else {
-            Ok(EOF)
+            Ok(Eof)
         }
     }
 }
@@ -428,7 +428,7 @@ mod test {
         fn parse_empty_string() {
             let lexer = Lexer::new();
             let mut parser = Parser::new();
-            assert_eq!(parser.parse(&lexer.lex("").unwrap()), Ok(Expression::EOF));
+            assert_eq!(parser.parse(&lexer.lex("").unwrap()), Ok(Expression::Eof));
         }
     }
 }

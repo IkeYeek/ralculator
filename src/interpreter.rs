@@ -16,7 +16,7 @@ impl Interpreter {
 
     fn is_assignation_legal(&self, identifier_name: &str, expression: &Expression) -> bool {
         match expression {
-            Assignment(_, _) | Literal(_) => true,
+            Assignment(_, _) | Literal(_) | Expression::Eof => true,
             Expression::Variable(variable_name) => {
                 identifier_name != variable_name
                     && self
@@ -34,7 +34,6 @@ impl Interpreter {
             | Expression::ParenthesisExpression(expr) => {
                 self.is_assignation_legal(identifier_name, expr)
             }
-            Expression::EOF => {true}
         }
     }
 
@@ -82,7 +81,7 @@ impl Interpreter {
                     Err(format!("Variable {identifier} not found"))
                 }
             }
-            Expression::EOF => {
+            Expression::Eof => {
                 Err(String::from("EOF"))
             }
         }
