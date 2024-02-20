@@ -1,3 +1,3 @@
 pub mod cli;
 pub mod repl;
-pub mod logic;
+pub mod expression;

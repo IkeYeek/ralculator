@@ -2,12 +2,12 @@
 mod tests {
     #[cfg(test)]
     mod parser {
-        use ralculator::logic::lexer::Lexer;
-        use ralculator::logic::parser::ast::Expression;
-        use ralculator::logic::parser::ast::Expression::{
+        use ralculator::expression::lexer::Lexer;
+        use ralculator::expression::parser::ast::Expression;
+        use ralculator::expression::parser::ast::Expression::{
             Addition, Multiplication, ParenthesisExpression, UnaryMinus, Variable,
         };
-        use ralculator::logic::parser::Parser;
+        use ralculator::expression::parser::Parser;
 
         #[test]
         fn parse_assign() {

@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use ralculator::logic::interpreter::Interpreter;
-    use ralculator::logic::lexer::Lexer;
-    use ralculator::logic::parser::Parser;
+    use ralculator::expression::interpreter::Interpreter;
+    use ralculator::expression::lexer::Lexer;
+    use ralculator::expression::parser::Parser;
 
     #[test]
     fn interpret_1_plus_1() {
