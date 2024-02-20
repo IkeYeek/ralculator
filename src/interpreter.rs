@@ -34,6 +34,7 @@ impl Interpreter {
             | Expression::ParenthesisExpression(expr) => {
                 self.is_assignation_legal(identifier_name, expr)
             }
+            Expression::EOF => {true}
         }
     }
 
@@ -80,6 +81,9 @@ impl Interpreter {
                 } else {
                     Err(format!("Variable {identifier} not found"))
                 }
+            }
+            Expression::EOF => {
+                Err(String::from("EOF"))
             }
         }
     }

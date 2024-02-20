@@ -1,7 +1,7 @@
 use crate::lexer::TokenKind::{Operator, Separator};
 use crate::lexer::{Token, TokenKind};
 use crate::parser::ast::Expression;
-use crate::parser::ast::Expression::{Assignment, Literal, UnaryMinus, UnaryPlus, Variable};
+use crate::parser::ast::Expression::{Assignment, EOF, Literal, UnaryMinus, UnaryPlus, Variable};
 
 #[derive(Debug, Clone)]
 struct TokenStream {
@@ -44,6 +44,7 @@ pub(crate) mod ast {
         Division(Box<Expression>, Box<Expression>),
         Literal(f64),
         Variable(String),
+        EOF,
     }
 }
 #[derive(Clone)]
@@ -233,7 +234,7 @@ impl Parser {
                 },
             }
         } else {
-            Err(String::from("Trying to parse an empty string"))
+            Ok(EOF)
         }
     }
 }
@@ -452,7 +453,7 @@ mod test {
         fn parse_empty_string() {
             let lexer = Lexer::new();
             let mut parser = Parser::new();
-            assert!(parser.parse(&lexer.lex("").unwrap()).is_err());
+            assert_eq!(parser.parse(&lexer.lex("").unwrap()), Ok(Expression::EOF));
         }
     }
 }
