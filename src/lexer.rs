@@ -1,44 +1,72 @@
 use regex::Regex;
+use crate::lexer::tokens::{Kind, Token};
 
-#[derive(Debug, PartialEq, Clone)]
-pub(crate) enum TokenKind {
-    Identifier,
-    Operator,
-    Separator,
-    Literal,
-}
-#[derive(Debug, PartialEq, Clone)]
-pub(crate) struct Token {
-    pub(crate) kind: TokenKind,
-    pub(crate) raw_value: String,
-    pub(crate) position: usize,
-}
+pub(crate) mod tokens {
+    #[derive(Debug, PartialEq, Clone)]
+    pub(crate) enum Kind {
+        Identifier,
+        Operator,
+        Separator,
+        Literal,
+    }
+    #[derive(Debug, PartialEq, Clone)]
+    pub(crate) struct Token {
+        pub(crate) kind: Kind,
+        pub(crate) raw_value: String,
+        pub(crate) position: usize,
+    }
 
-impl Token {
-    pub(crate) fn new(kind: TokenKind, raw_value: String, position: usize) -> Self {
-        Token {
-            kind,
-            raw_value,
-            position,
+    impl Token {
+        pub(crate) fn new(kind: Kind, raw_value: String, position: usize) -> Self {
+            Token {
+                kind,
+                raw_value,
+                position,
+            }
+        }
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct TokenStream {
+        buffer: Vec<Token>,
+        cursor: usize,
+    }
+
+    impl TokenStream {
+        pub(crate) fn new(buffer: Vec<Token>) -> Self {
+            Self { buffer, cursor: 0 }
+        }
+
+        pub(crate) fn curr(&self) -> Option<&Token> {
+            self.buffer.get(self.cursor)
+        }
+
+        pub(crate) fn next(&mut self) -> Option<&Token> {
+            self.cursor += 1;
+            self.curr()
+        }
+
+        pub(crate) fn lookahead(&self) -> Option<&Token> {
+            self.buffer.get(self.cursor + 1)
         }
     }
 }
 
 pub(crate) struct Lexer {
-    token_regexs: [(TokenKind, Regex); 4],
+    token_regexs: [(Kind, Regex); 4],
 }
 
 impl Lexer {
     pub(crate) fn new() -> Self {
         Self {
             token_regexs: [
-                (TokenKind::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
+                (Kind::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
                 (
-                    TokenKind::Literal,
+                    Kind::Literal,
                     Regex::new(r"^\d+([.]\d+)?(e[+-]?\d+)?").unwrap(),
                 ),
-                (TokenKind::Operator, Regex::new(r"^[+-/*^=]").unwrap()),
-                (TokenKind::Separator, Regex::new(r"^[()]").unwrap()),
+                (Kind::Operator, Regex::new(r"^[+-/*^=]").unwrap()),
+                (Kind::Separator, Regex::new(r"^[()]").unwrap()),
             ],
         }
     }
@@ -80,7 +108,7 @@ impl Lexer {
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::lexer::TokenKind::{Identifier, Literal, Operator, Separator};
+    use crate::lexer::Kind::{Identifier, Literal, Operator, Separator};
     use crate::lexer::{Lexer, Token};
 
     #[test]

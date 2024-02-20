@@ -1,32 +1,7 @@
-use crate::lexer::TokenKind::{Operator, Separator};
-use crate::lexer::{Token, TokenKind};
+use crate::lexer::tokens::Kind::{Operator, Separator};
+use crate::lexer::tokens::{Kind, Token, TokenStream};
 use crate::parser::ast::Expression;
 use crate::parser::ast::Expression::{Assignment, EOF, Literal, UnaryMinus, UnaryPlus, Variable};
-
-#[derive(Debug, Clone)]
-struct TokenStream {
-    buffer: Vec<Token>,
-    cursor: usize,
-}
-
-impl TokenStream {
-    pub(crate) fn new(buffer: Vec<Token>) -> Self {
-        Self { buffer, cursor: 0 }
-    }
-
-    pub(crate) fn curr(&self) -> Option<&Token> {
-        self.buffer.get(self.cursor)
-    }
-
-    pub(crate) fn next(&mut self) -> Option<&Token> {
-        self.cursor += 1;
-        self.curr()
-    }
-
-    pub(crate) fn lookahead(&self) -> Option<&Token> {
-        self.buffer.get(self.cursor + 1)
-    }
-}
 
 pub(crate) mod ast {
     #[derive(Debug, PartialEq, Clone)]
@@ -75,7 +50,7 @@ impl Parser {
                     }
                     _ => Err(format!("Unexpected operator {token:?}")),
                 },
-                TokenKind::Literal => {
+                Kind::Literal => {
                     let literal_value = token
                         .raw_value
                         .parse::<f64>()
@@ -84,7 +59,7 @@ impl Parser {
                     Ok(Literal(literal_value))
                 }
 
-                TokenKind::Identifier => {
+                Kind::Identifier => {
                     if self.symbol_table.contains(&token.raw_value) {
                         let res = Ok(Variable(token.raw_value.clone()));
                         self.tokens.next();
@@ -185,7 +160,7 @@ impl Parser {
 
     fn parse_assignment(&mut self) -> Result<Expression, String> {
         match self.tokens.curr() {
-            Some(idt_token) if idt_token.kind == TokenKind::Identifier => {
+            Some(idt_token) if idt_token.kind == Kind::Identifier => {
                 let idt_token_clone = idt_token.clone();
                 match self.tokens.next() {
                     Some(assignment_token)
@@ -212,7 +187,7 @@ impl Parser {
         self.tokens = TokenStream::new(line.to_vec());
         if let Some(token) = self.tokens.curr() {
             match token.kind {
-                TokenKind::Identifier => match self.tokens.lookahead() {
+                Kind::Identifier => match self.tokens.lookahead() {
                     Some(lookahead) => match lookahead.kind {
                         Operator => {
                             if let "=" = lookahead.raw_value.as_str() {
@@ -227,7 +202,7 @@ impl Parser {
                     },
                     None => self.parse_expr(),
                 },
-                Separator | TokenKind::Literal => self.parse_expr(),
+                Separator | Kind::Literal => self.parse_expr(),
                 Operator => match token.raw_value.as_str() {
                     "+" | "-" => self.parse_expr(),
                     _ => Err(format!("Expected + or -, got {token:?}")),
