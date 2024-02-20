@@ -1,5 +1,5 @@
-use crate::expression::parser::ast::Expression;
-use crate::expression::parser::ast::Expression::{Assignment, Literal};
+use crate::expressions::parser::ast::Expression;
+use crate::expressions::parser::ast::Expression::{Assignment, Literal};
 use std::collections::HashMap;
 
 #[derive(Clone)]

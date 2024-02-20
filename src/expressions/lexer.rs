@@ -1,5 +1,5 @@
 use regex::Regex;
-use crate::expression::lexer::tokens::{Kind, Token};
+use crate::expressions::lexer::tokens::{Kind, Token};
 
 pub mod tokens {
     #[derive(Debug, PartialEq, Clone)]

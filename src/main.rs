@@ -1,12 +1,12 @@
-use ralculator::expression::lexer::Lexer;
+use ralculator::expressions::lexer::Lexer;
 use clap::Parser;
-use ralculator::expression::interpreter::Interpreter;
-use ralculator::cli::{Cli, Mode};
-use ralculator::repl::Repl;
+use ralculator::expressions::interpreter::Interpreter;
+use ralculator::interface::cli::{Cli, Mode};
+use ralculator::interface::repl::Repl;
 
 fn program() -> Result<(), String> {
     let lexer = Lexer::new();
-    let mut parser = ralculator::expression::parser::Parser::new();
+    let mut parser = ralculator::expressions::parser::Parser::new();
     let mut interpreter = Interpreter::new();
     let cli = Cli::parse();
     match cli.mode {
