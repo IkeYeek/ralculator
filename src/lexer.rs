@@ -1,23 +1,23 @@
 use regex::Regex;
 use crate::lexer::tokens::{Kind, Token};
 
-pub(crate) mod tokens {
+pub mod tokens {
     #[derive(Debug, PartialEq, Clone)]
-    pub(crate) enum Kind {
+    pub enum Kind {
         Identifier,
         Operator,
         Separator,
         Literal,
     }
     #[derive(Debug, PartialEq, Clone)]
-    pub(crate) struct Token {
+    pub struct Token {
         pub(crate) kind: Kind,
         pub(crate) raw_value: String,
         pub(crate) position: usize,
     }
 
     impl Token {
-        pub(crate) fn new(kind: Kind, raw_value: String, position: usize) -> Self {
+        pub fn new(kind: Kind, raw_value: String, position: usize) -> Self {
             Token {
                 kind,
                 raw_value,
@@ -52,12 +52,12 @@ pub(crate) mod tokens {
     }
 }
 
-pub(crate) struct Lexer {
+pub struct Lexer {
     token_regexs: [(Kind, Regex); 4],
 }
 
 impl Lexer {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             token_regexs: [
                 (Kind::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
@@ -71,7 +71,7 @@ impl Lexer {
         }
     }
 
-    pub(crate) fn lex(&self, buffer: &str) -> Result<Vec<Token>, String> {
+    pub fn lex(&self, buffer: &str) -> Result<Vec<Token>, String> {
         let mut token_vector: Vec<Token> = Vec::new();
         let mut cursor: usize = 0;
         let buffer = buffer.trim();
@@ -103,64 +103,5 @@ impl Lexer {
             }
         }
         Err(format!("unknown token at position {delta}"))
-    }
-}
-
-#[cfg(test)]
-pub(crate) mod test {
-    use crate::lexer::Kind::{Identifier, Literal, Operator, Separator};
-    use crate::lexer::{Lexer, Token};
-
-    #[test]
-    fn lex_returns_result() {
-        let lexer = Lexer::new();
-        assert_eq!(lexer.lex("".into()), Ok(Vec::new()))
-    }
-
-    #[test]
-    fn lex_returns_1_plus_1() {
-        let lexer = Lexer::new();
-        assert_eq!(
-            lexer.lex("1 + 1".into()),
-            Ok(vec![
-                Token::new(Literal, "1".into(), 0),
-                Token::new(Operator, "+".into(), 2),
-                Token::new(Literal, "1".into(), 4)
-            ])
-        );
-    }
-
-    #[test]
-    fn lex_ignores_whitespace() {
-        let lexer = Lexer::new();
-        assert_eq!(
-            lexer.lex("1 +  1".into()),
-            Ok(vec![
-                Token::new(Literal, "1".into(), 0),
-                Token::new(Operator, "+".into(), 2),
-                Token::new(Literal, "1".into(), 5)
-            ])
-        );
-    }
-
-    #[test]
-    fn lex_returns_complex() {
-        let lexer = Lexer::new();
-        assert_eq!(
-            lexer.lex("1+1*(4^2)/ a".into()).unwrap(),
-            vec![
-                Token::new(Literal, "1".into(), 0),
-                Token::new(Operator, "+".into(), 1),
-                Token::new(Literal, "1".into(), 2),
-                Token::new(Operator, "*".into(), 3),
-                Token::new(Separator, "(".into(), 4),
-                Token::new(Literal, "4".into(), 5),
-                Token::new(Operator, "^".into(), 6),
-                Token::new(Literal, "2".into(), 7),
-                Token::new(Separator, ")".into(), 8),
-                Token::new(Operator, "/".into(), 9),
-                Token::new(Identifier, "a".into(), 11)
-            ]
-        );
     }
 }

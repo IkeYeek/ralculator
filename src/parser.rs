@@ -3,9 +3,9 @@ use crate::lexer::tokens::{Kind, Token, TokenStream};
 use crate::parser::ast::Expression;
 use crate::parser::ast::Expression::{Assignment, Eof, Literal, UnaryMinus, UnaryPlus, Variable};
 
-pub(crate) mod ast {
+pub mod ast {
     #[derive(Debug, PartialEq, Clone)]
-    pub(crate) enum Expression {
+    pub enum Expression {
         Assignment(String, Box<Expression>),
 
         Addition(Box<Expression>, Box<Expression>),
@@ -23,13 +23,13 @@ pub(crate) mod ast {
     }
 }
 #[derive(Clone)]
-pub(crate) struct Parser {
+pub struct Parser {
     symbol_table: Vec<String>,
     tokens: TokenStream,
 }
 
 impl Parser {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             symbol_table: Vec::new(),
             tokens: TokenStream::new(Vec::new()),
@@ -164,18 +164,18 @@ impl Parser {
                 let idt_token_clone = idt_token.clone();
                 match self.tokens.next() {
                     Some(assignment_token)
-                        if assignment_token.kind == Operator
-                            && assignment_token.raw_value.as_str() == "=" =>
-                    {
-                        self.tokens.next();
-                        if !self.symbol_table.contains(&idt_token_clone.raw_value) {
-                            self.symbol_table.push(idt_token_clone.clone().raw_value);
+                    if assignment_token.kind == Operator
+                        && assignment_token.raw_value.as_str() == "=" =>
+                        {
+                            self.tokens.next();
+                            if !self.symbol_table.contains(&idt_token_clone.raw_value) {
+                                self.symbol_table.push(idt_token_clone.clone().raw_value);
+                            }
+                            Ok(Assignment(
+                                idt_token_clone.raw_value,
+                                Box::new(self.parse_expr()?),
+                            ))
                         }
-                        Ok(Assignment(
-                            idt_token_clone.raw_value,
-                            Box::new(self.parse_expr()?),
-                        ))
-                    }
                     _ => Err(String::from("Expected an = after the identifier")),
                 }
             }
@@ -183,7 +183,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse(&mut self, line: &[Token]) -> Result<Expression, String> {
+    pub fn parse(&mut self, line: &[Token]) -> Result<Expression, String> {
         self.tokens = TokenStream::new(line.to_vec());
         if let Some(token) = self.tokens.curr() {
             match token.kind {
@@ -210,225 +210,6 @@ impl Parser {
             }
         } else {
             Ok(Eof)
-        }
-    }
-}
-#[cfg(test)]
-mod test {
-    #[cfg(test)]
-    mod parser {
-        use crate::lexer::Lexer;
-        use crate::parser::ast::Expression;
-        use crate::parser::ast::Expression::{
-            Addition, Multiplication, ParenthesisExpression, UnaryMinus, Variable,
-        };
-        use crate::parser::Parser;
-
-        #[test]
-        fn parse_assign() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("a = 1").unwrap()).unwrap(),
-                Expression::Assignment("a".into(), Box::new(Expression::Literal(1.0)))
-            )
-        }
-
-        #[test]
-        fn parse_1() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1").unwrap()).unwrap(),
-                Expression::Literal(1f64)
-            )
-        }
-
-        #[test]
-        fn parse_23() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("23").unwrap()).unwrap(),
-                Expression::Literal(23f64)
-            )
-        }
-
-        #[test]
-        fn parse_minus_1() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("-1").unwrap()).unwrap(),
-                UnaryMinus(Box::new(Expression::Literal(1f64)))
-            )
-        }
-
-        #[test]
-        fn parse_1_plus_1() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1 + 1").unwrap()).unwrap(),
-                Addition(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(Expression::Literal(1f64))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_1_minus_2() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1 - 2").unwrap()).unwrap(),
-                Expression::Subtraction(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(Expression::Literal(2f64))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_1_times_4() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1 * 4").unwrap()).unwrap(),
-                Multiplication(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(Expression::Literal(4f64))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_1_times_parexpr_3_plus_4() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1 * (3 + 4)").unwrap()).unwrap(),
-                Multiplication(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(ParenthesisExpression(Box::new(Addition(
-                        Box::new(Expression::Literal(3f64)),
-                        Box::new(Expression::Literal(4f64))
-                    ))))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_1_times_parexpr_3_plus_4_nospace() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1*(3+4)").unwrap()).unwrap(),
-                Multiplication(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(ParenthesisExpression(Box::new(Addition(
-                        Box::new(Expression::Literal(3f64)),
-                        Box::new(Expression::Literal(4f64))
-                    ))))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_1_times_a() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            parser.parse(&lexer.lex("a = 3").unwrap()).unwrap(); // Required, else we got an undefined symbol exception
-            assert_eq!(
-                parser.parse(&lexer.lex("1 + a").unwrap()).unwrap(),
-                Addition(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(Variable(String::from("a")))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_undefined_variable() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert!(parser.parse(&lexer.lex("a + b").unwrap()).is_err());
-        }
-
-        #[test]
-        fn parse_nested_parentheses() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("(1 +  2) *  3").unwrap()).unwrap(),
-                Multiplication(
-                    Box::new(ParenthesisExpression(Box::new(Addition(
-                        Box::new(Expression::Literal(1f64)),
-                        Box::new(Expression::Literal(2f64))
-                    )))),
-                    Box::new(Expression::Literal(3f64))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_nested_parentheses_with_precedence() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1 + (2 *  3)").unwrap()).unwrap(),
-                Addition(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(ParenthesisExpression(Box::new(Multiplication(
-                        Box::new(Expression::Literal(2f64)),
-                        Box::new(Expression::Literal(3f64))
-                    ))))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_minus_1_minus_minus_1() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("-1 - -1").unwrap()).unwrap(),
-                Expression::Subtraction(
-                    Box::new(UnaryMinus(Box::new(Expression::Literal(1f64)))),
-                    Box::new(UnaryMinus(Box::new(Expression::Literal(1f64))))
-                )
-            )
-        }
-
-        #[test]
-        fn parse_nested_parentheses_with_precedence_and_unary() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(
-                parser.parse(&lexer.lex("1 + (-2 *  3)").unwrap()).unwrap(),
-                Addition(
-                    Box::new(Expression::Literal(1f64)),
-                    Box::new(ParenthesisExpression(Box::new(Multiplication(
-                        Box::new(UnaryMinus(Box::new(Expression::Literal(2f64)))),
-                        Box::new(Expression::Literal(3f64))
-                    ))))
-                )
-            );
-        }
-
-        #[test]
-        fn parse_nested_parentheses_with_precedence_and_unary_fail() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert!(parser.parse(&lexer.lex("1 + (-2 *  3").unwrap()).is_err());
-        }
-
-        #[test]
-        fn parse_empty_string() {
-            let lexer = Lexer::new();
-            let mut parser = Parser::new();
-            assert_eq!(parser.parse(&lexer.lex("").unwrap()), Ok(Expression::Eof));
         }
     }
 }

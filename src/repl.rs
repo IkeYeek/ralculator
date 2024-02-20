@@ -4,14 +4,14 @@ use crate::parser::Parser;
 use std::io;
 use std::io::Write;
 
-pub(crate) struct Repl {
+pub struct Repl {
     lexer: Lexer,
     parser: Parser,
     interpreter: Interpreter,
 }
 
 impl Repl {
-    pub(crate) fn new(lexer: Lexer, parser: Parser, interpreter: Interpreter) -> Self {
+    pub fn new(lexer: Lexer, parser: Parser, interpreter: Interpreter) -> Self {
         Self {
             lexer,
             parser,
@@ -19,7 +19,7 @@ impl Repl {
         }
     }
 
-    pub(crate) fn looper(&mut self) -> Result<(), String> {
+    fn looper(&mut self) -> Result<(), String> {
         let mut line_buffer = String::new();
         print!("> ");
         io::stdout().flush().map_err(|err| err.to_string())?;
@@ -35,7 +35,7 @@ impl Repl {
         }
     }
 
-    pub(crate) fn run(&mut self) -> Result<(), String> {
+    pub fn run(&mut self) -> Result<(), String> {
         Repl::greet();
         self.looper()
     }

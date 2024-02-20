@@ -1,18 +1,12 @@
-use crate::cli::{Cli, Mode};
-use crate::interpreter::Interpreter;
-use crate::lexer::Lexer;
-use crate::repl::Repl;
+use ralculator::lexer::Lexer;
 use clap::Parser;
-
-mod cli;
-pub mod interpreter;
-pub mod lexer;
-pub mod parser;
-mod repl;
+use ralculator::interpreter::Interpreter;
+use ralculator::cli::{Cli, Mode};
+use ralculator::repl::Repl;
 
 fn main() {
     let lexer = Lexer::new();
-    let mut parser = parser::Parser::new();
+    let mut parser = ralculator::parser::Parser::new();
     let mut interpreter = Interpreter::new();
     let cli = Cli::parse();
 
