@@ -3,7 +3,6 @@ use std::io::Write;
 use crate::expressions::interpreter::Interpreter;
 use crate::expressions::lexer::Lexer;
 use crate::expressions::parser::Parser;
-
 pub struct Repl {
     lexer: Lexer,
     parser: Parser,
@@ -27,9 +26,9 @@ impl Repl {
         if line_buffer.is_empty() {
             Ok(())
         } else {
-            let tokens = self.lexer.lex(&line_buffer)?;
-            let ast = self.parser.parse(&tokens)?;
-            let result = self.interpreter.interpret(ast)?;
+            let tokens = self.lexer.lex(&line_buffer).map_err(|err| format!("Lexer error: {}", err.to_string()))?;
+            let ast = self.parser.parse(&tokens).map_err(|err| format!("Parser error: {}", err.to_string()))?;
+            let result = self.interpreter.interpret(ast).map_err(|err| format!("Interpreter error: {}", err.to_string()))?;
             println!("= {result}");
             self.looper()
         }

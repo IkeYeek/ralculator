@@ -6,19 +6,19 @@ mod tests {
     #[test]
     fn lex_returns_result() {
         let lexer = Lexer::new();
-        assert_eq!(lexer.lex("".into()), Ok(Vec::new()))
+        assert_eq!(lexer.lex("".into()).unwrap(), Vec::new())
     }
 
     #[test]
     fn lex_returns_1_plus_1() {
         let lexer = Lexer::new();
         assert_eq!(
-            lexer.lex("1 + 1".into()),
-            Ok(vec![
+            lexer.lex("1 + 1".into()).unwrap(),
+            vec![
                 Token::new(Kind::Literal, "1".into(), 0),
                 Token::new(Kind::Operator, "+".into(), 2),
                 Token::new(Kind::Literal, "1".into(), 4)
-            ])
+            ]
         );
     }
 
@@ -26,12 +26,12 @@ mod tests {
     fn lex_ignores_whitespace() {
         let lexer = Lexer::new();
         assert_eq!(
-            lexer.lex("1 +  1".into()),
-            Ok(vec![
+            lexer.lex("1 +  1".into()).unwrap(),
+            vec![
                 Token::new(Kind::Literal, "1".into(), 0),
                 Token::new(Kind::Operator, "+".into(), 2),
                 Token::new(Kind::Literal, "1".into(), 5)
-            ])
+            ]
         );
     }
 

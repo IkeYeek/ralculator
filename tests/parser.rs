@@ -213,7 +213,7 @@ mod tests {
         fn parse_empty_string() {
             let lexer = Lexer::new();
             let mut parser = Parser::new();
-            assert_eq!(parser.parse(&lexer.lex("").unwrap()), Ok(Expression::Eof));
+            assert_eq!(parser.parse(&lexer.lex("").unwrap()).unwrap(), Expression::Eof);
         }
     }
 }

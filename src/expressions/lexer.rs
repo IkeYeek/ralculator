@@ -1,4 +1,5 @@
 use regex::Regex;
+use crate::errors::lexer_error::LexerError;
 use crate::expressions::lexer::tokens::{Kind, Token};
 
 pub mod tokens {
@@ -71,7 +72,7 @@ impl Lexer {
         }
     }
 
-    pub fn lex(&self, buffer: &str) -> Result<Vec<Token>, String> {
+    pub fn lex(&self, buffer: &str) -> Result<Vec<Token>, LexerError> {
         let mut token_vector: Vec<Token> = Vec::new();
         let mut cursor: usize = 0;
         let buffer = buffer.trim();
@@ -94,7 +95,7 @@ impl Lexer {
         &self,
         buffer: &str,
         buffer_start_offset: usize,
-    ) -> Result<Token, String> {
+    ) -> Result<Token, LexerError> {
         let trimmed_start_whitespaces = buffer.trim_start();
         let delta = buffer_start_offset + buffer.len() - trimmed_start_whitespaces.len(); // we add to the offset the number of whitespace preceeding the potential actual token.
         for r in &self.token_regexs {
@@ -102,6 +103,6 @@ impl Lexer {
                 return Ok(Token::new(r.0.clone(), res.as_str().into(), delta));
             }
         }
-        Err(format!("unknown token at position {delta}"))
+        Err(LexerError::new(format!("unknown token at position {delta}")))
     }
 }

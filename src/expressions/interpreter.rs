@@ -1,6 +1,7 @@
 use crate::expressions::parser::ast::Expression;
 use crate::expressions::parser::ast::Expression::{Assignment, Literal};
 use std::collections::HashMap;
+use crate::errors::interpreter_error::InterpreterError;
 
 #[derive(Clone)]
 pub struct Interpreter {
@@ -37,7 +38,7 @@ impl Interpreter {
         }
     }
 
-    pub fn interpret(&mut self, ast: Expression) -> Result<f64, String> {
+    pub fn interpret(&mut self, ast: Expression) -> Result<f64, InterpreterError> {
         match ast {
             Assignment(identifier, expr) => {
                 if self.is_assignation_legal(&identifier, &expr) {
@@ -49,7 +50,7 @@ impl Interpreter {
                         .or_insert(*expr.clone());
                     return self.interpret(*expr.clone());
                 }
-                Err(String::from("Illegal assignation"))
+                Err(InterpreterError::new(String::from("Illegal assignation")))
             }
             Expression::Addition(left, right) => {
                 Ok(self.interpret(*left)? + self.interpret(*right)?)
@@ -68,7 +69,7 @@ impl Interpreter {
             Expression::Division(left, right) => {
                 let right_operand = self.interpret(*right)?;
                 if right_operand == 0.0 {
-                    Err(String::from("Cannot divide by 0."))
+                    Err(InterpreterError::new(String::from("Cannot divide by 0.")))
                 } else {
                     Ok(self.interpret(*left)? / right_operand)
                 }
@@ -78,11 +79,11 @@ impl Interpreter {
                 if let Some(expr) = self.mem.get(identifier.as_str()) {
                     Ok(self.interpret(expr.clone())?)
                 } else {
-                    Err(format!("Variable {identifier} not found"))
+                    Err(InterpreterError::new(format!("Variable {identifier} not found")))
                 }
             }
             Expression::Eof => {
-                Err(String::from("EOF"))
+                Err(InterpreterError::new(String::from("EOF")))
             }
         }
     }
