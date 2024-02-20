@@ -1,7 +1,7 @@
-use crate::lexer::tokens::Kind::{Operator, Separator};
-use crate::lexer::tokens::{Kind, Token, TokenStream};
-use crate::parser::ast::Expression;
-use crate::parser::ast::Expression::{Assignment, Eof, Literal, UnaryMinus, UnaryPlus, Variable};
+use crate::logic::lexer::tokens::Kind::{Operator, Separator};
+use crate::logic::lexer::tokens::{Kind, Token, TokenStream};
+use crate::logic::parser::ast::Expression;
+use crate::logic::parser::ast::Expression::{Assignment, Eof, Literal, UnaryMinus, UnaryPlus, Variable};
 
 pub mod ast {
     #[derive(Debug, PartialEq, Clone)]

@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use ralculator::lexer::tokens::Token;
-    use ralculator::lexer::tokens::Kind;
-    use ralculator::lexer::Lexer;
+    use ralculator::logic::lexer::tokens::Token;
+    use ralculator::logic::lexer::tokens::Kind;
+    use ralculator::logic::lexer::Lexer;
     #[test]
     fn lex_returns_result() {
         let lexer = Lexer::new();

@@ -1,8 +1,8 @@
-use crate::interpreter::Interpreter;
-use crate::lexer::Lexer;
-use crate::parser::Parser;
 use std::io;
 use std::io::Write;
+use crate::logic::interpreter::Interpreter;
+use crate::logic::lexer::Lexer;
+use crate::logic::parser::Parser;
 
 pub struct Repl {
     lexer: Lexer,
