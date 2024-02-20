@@ -25,7 +25,7 @@ impl Token {
 }
 
 pub(crate) struct Lexer {
-    token_regexs: [(TokenKind, Regex); 4]
+    token_regexs: [(TokenKind, Regex); 4],
 }
 
 impl Lexer {
@@ -39,7 +39,7 @@ impl Lexer {
                 ),
                 (TokenKind::Operator, Regex::new(r"^[+-/*^=]").unwrap()),
                 (TokenKind::Separator, Regex::new(r"^[()]").unwrap()),
-            ]
+            ],
         }
     }
 
@@ -62,9 +62,13 @@ impl Lexer {
     }
 
     // function is agnostic to the current real buffer. start_offset is used to compute token start
-    fn next_token_in_buff(&self, buffer: &str, buffer_start_offset: usize) -> Result<Token, String> {
+    fn next_token_in_buff(
+        &self,
+        buffer: &str,
+        buffer_start_offset: usize,
+    ) -> Result<Token, String> {
         let trimmed_start_whitespaces = buffer.trim_start();
-        let delta = buffer_start_offset + buffer.len() - trimmed_start_whitespaces.len();  // we add to the offset the number of whitespace preceeding the potential actual token.
+        let delta = buffer_start_offset + buffer.len() - trimmed_start_whitespaces.len(); // we add to the offset the number of whitespace preceeding the potential actual token.
         for r in &self.token_regexs {
             if let Some(res) = r.1.find(trimmed_start_whitespaces) {
                 return Ok(Token::new(r.0.clone(), res.as_str().into(), delta));
@@ -76,8 +80,8 @@ impl Lexer {
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::lexer::{Lexer, Token};
     use crate::lexer::TokenKind::{Identifier, Literal, Operator, Separator};
+    use crate::lexer::{Lexer, Token};
 
     #[test]
     fn lex_returns_result() {

@@ -195,7 +195,10 @@ impl Parser {
                         if !self.symbol_table.contains(&idt_token_clone.raw_value) {
                             self.symbol_table.push(idt_token_clone.clone().raw_value);
                         }
-                        Ok(Assignment(idt_token_clone.raw_value, Box::new(self.parse_expr()?)))
+                        Ok(Assignment(
+                            idt_token_clone.raw_value,
+                            Box::new(self.parse_expr()?),
+                        ))
                     }
                     _ => Err(String::from("Expected an = after the identifier")),
                 }
@@ -238,7 +241,7 @@ impl Parser {
 mod test {
     #[cfg(test)]
     mod parser {
-        use crate::lexer::{Lexer};
+        use crate::lexer::Lexer;
         use crate::parser::ast::Expression;
         use crate::parser::ast::Expression::{
             Addition, Multiplication, ParenthesisExpression, UnaryMinus, Variable,

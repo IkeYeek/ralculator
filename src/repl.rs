@@ -1,5 +1,5 @@
 use crate::interpreter::Interpreter;
-use crate::lexer::{Lexer};
+use crate::lexer::Lexer;
 use crate::parser::Parser;
 use std::io;
 use std::io::Write;

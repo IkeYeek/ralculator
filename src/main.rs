@@ -1,6 +1,6 @@
 use crate::cli::{Cli, Mode};
 use crate::interpreter::Interpreter;
-use crate::lexer::{Lexer};
+use crate::lexer::Lexer;
 use crate::repl::Repl;
 use clap::Parser;
 
