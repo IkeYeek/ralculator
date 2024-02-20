@@ -18,37 +18,28 @@ impl Repl {
             lexer: Lexer::new(),
         }
     }
-    pub(crate) fn run(&mut self) -> Result<(), String> {
-        Repl::greet();
+
+    pub(crate) fn looper(&mut self) -> Result<(), String> {
         let mut line_buffer = String::new();
-        let mut eof = false;
-        while !eof {
-            line_buffer.clear();
-            print!("> ");
-            io::stdout().flush().map_err(|e| e.to_string())?;
-            eof = io::stdin()
-                .read_line(&mut line_buffer)
-                .map_err(|err| err.to_string())?
-                == 1; // As we are reading lines, if we only had 1 character it's a newline (let's say we live in a world with only LF, perfect world imo)
-            if eof {
-                println!();
-                continue;
-            }
-            match self.lexer.lex(&line_buffer) {
-                Ok(tokens) => match self.parser.parse(&tokens) {
-                    Ok(ast) => {
-                        let result = self.interpreter.interpret(ast);
-                        match result {
-                            Ok(result) => println!("= {result}"),
-                            Err(e) => eprintln!("{e}"),
-                        }
-                    }
-                    Err(e) => eprintln!("{e}"),
-                },
-                Err(e) => eprintln!("{e}"),
+        print!("> ");
+        io::stdout().flush().map_err(|err| err.to_string())?;
+        io::stdin().read_line(&mut line_buffer).map_err(|e| e.to_string())?;
+        match line_buffer.as_str()
+        {
+            "" => Ok(()),
+            _ => {
+                let tokens = self.lexer.lex(&line_buffer)?;
+                let ast = self.parser.parse(&tokens)?;
+                let result = self.interpreter.interpret(ast)?;
+                println!("= {result}");
+                self.looper()
             }
         }
-        Ok(())
+    }
+
+    pub(crate) fn run(&mut self) -> Result<(), String> {
+        Repl::greet();
+        self.looper()
     }
 
     fn tabs(n: usize) -> String {
