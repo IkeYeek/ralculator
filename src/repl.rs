@@ -11,11 +11,11 @@ pub(crate) struct Repl {
 }
 
 impl Repl {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(lexer: Lexer, parser: Parser, interpreter: Interpreter) -> Self {
         Self {
-            parser: Parser::new(),
-            interpreter: Interpreter::new(),
-            lexer: Lexer::new(),
+            lexer,
+            parser,
+            interpreter,
         }
     }
 
@@ -24,16 +24,14 @@ impl Repl {
         print!("> ");
         io::stdout().flush().map_err(|err| err.to_string())?;
         io::stdin().read_line(&mut line_buffer).map_err(|e| e.to_string())?;
-        match line_buffer.as_str()
-        {
-            "" => Ok(()),
-            _ => {
-                let tokens = self.lexer.lex(&line_buffer)?;
-                let ast = self.parser.parse(&tokens)?;
-                let result = self.interpreter.interpret(ast)?;
-                println!("= {result}");
-                self.looper()
-            }
+        if line_buffer.is_empty() {
+            Ok(())
+        } else {
+            let tokens = self.lexer.lex(&line_buffer)?;
+            let ast = self.parser.parse(&tokens)?;
+            let result = self.interpreter.interpret(ast)?;
+            println!("= {result}");
+            self.looper()
         }
     }
 

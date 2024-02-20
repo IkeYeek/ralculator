@@ -21,7 +21,7 @@ fn main() {
             interactive: true,
             exec: None,
         } => {
-            let mut repl = Repl::new();
+            let mut repl = Repl::new(lexer, parser, interpreter);
             repl.run()
         }
         Mode {
