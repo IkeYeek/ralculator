@@ -21,9 +21,9 @@ fn program() -> Result<(), String> {
             interactive: false,
             exec: Some(raw_expr),
         } => {
-            let tokens = lexer.lex(&raw_expr).map_err(|err| format!("Lexer error: {}", err.to_string()))?;
-            let ast = parser.parse(&tokens).map_err(|err| format!("Parser error: {}", err.to_string()))?;
-            let result = interpreter.interpret(ast).map_err(|err| format!("Interpreter error: {}", err.to_string()))?;
+            let tokens = lexer.lex(&raw_expr).map_err(|err| format!("Lexer error: {err}"))?;
+            let ast = parser.parse(&tokens).map_err(|err| format!("Parser error: {err}"))?;
+            let result = interpreter.interpret(ast).map_err(|err| format!("Interpreter error: {err}"))?;
             println!("{raw_expr} = {result}");
             Ok(())
         }

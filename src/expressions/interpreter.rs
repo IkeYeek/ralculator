@@ -9,6 +9,7 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             mem: HashMap::new(),
@@ -38,6 +39,10 @@ impl Interpreter {
         }
     }
 
+    /// # Errors
+    ///
+    /// Will return an error if it fails interpreting a line.
+    /// Error could be either `LexerError`, `SyntaxError` (parser error) or `InterpreterError`.
     pub fn interpret(&mut self, ast: Expression) -> Result<f64, InterpreterError> {
         match ast {
             Assignment(identifier, expr) => {
@@ -86,5 +91,11 @@ impl Interpreter {
                 Err(InterpreterError::new(String::from("EOF")))
             }
         }
+    }
+}
+
+impl Default for Interpreter {
+    fn default() -> Self {
+        Self::new()
     }
 }

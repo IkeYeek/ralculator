@@ -10,6 +10,7 @@ pub struct Repl {
 }
 
 impl Repl {
+    #[must_use]
     pub fn new(lexer: Lexer, parser: Parser, interpreter: Interpreter) -> Self {
         Self {
             lexer,
@@ -26,14 +27,17 @@ impl Repl {
         if line_buffer.is_empty() {
             Ok(())
         } else {
-            let tokens = self.lexer.lex(&line_buffer).map_err(|err| format!("Lexer error: {}", err.to_string()))?;
-            let ast = self.parser.parse(&tokens).map_err(|err| format!("Parser error: {}", err.to_string()))?;
-            let result = self.interpreter.interpret(ast).map_err(|err| format!("Interpreter error: {}", err.to_string()))?;
+            let tokens = self.lexer.lex(&line_buffer).map_err(|err| format!("Lexer error: {err}"))?;
+            let ast = self.parser.parse(&tokens).map_err(|err| format!("Parser error: {err}"))?;
+            let result = self.interpreter.interpret(ast).map_err(|err| format!("Interpreter error: {err}"))?;
             println!("= {result}");
             self.looper()
         }
     }
-
+    /// # Errors
+    ///
+    /// Will return an error if it fails interpreting a line.
+    /// Error could be either `LexerError`, `SyntaxError` (parser error) or `InterpreterError`.
     pub fn run(&mut self) -> Result<(), String> {
         Repl::greet();
         self.looper()

@@ -7,9 +7,10 @@ pub struct InterpreterError {
 }
 
 impl InterpreterError {
+    #[must_use]
     pub fn new(message: String) -> InterpreterError {
         InterpreterError {
-            message: String::from(message),
+            message
         }
     }
 }

@@ -133,7 +133,7 @@ The grammar of the calculator is defined as follows:
 <ExpressionPrime> ::= ("+" <Term> <ExpressionPrime> | "-" <Term> <ExpressionPrime> |  E)
 
 <Term> ::= <Factor> <TermPrime>
-<TermPrime> ::= ("*" <Factor> <TermPrime> | "/" <Factor> <TermPrime> |  | '(' <Term> ')' E)
+<TermPrime> ::= ("*" <Factor> <TermPrime> | "/" <Factor> <TermPrime> |  | '(' <Factor> ')' | E)
 
 <Factor> ::= ("+" | "-") <Factor>  
             | <Literal>  

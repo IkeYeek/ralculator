@@ -30,6 +30,7 @@ pub struct Parser {
 }
 
 impl Parser {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             symbol_table: Vec::new(),
@@ -118,7 +119,26 @@ impl Parser {
                     }
                     _ => Ok(left),
                 },
-                _ => Ok(left),
+                Separator => match token.raw_value.as_str() {
+                    "(" => {
+                      self.tokens.next();
+                        let expr = self.parse_factor()?;
+                        match self.tokens.curr() {
+                            Some(token) => if let ")" = token.raw_value.as_str() {
+                                Ok(Expression::Multiplication(
+                                    Box::from(left),
+                                    Box::from(expr),
+                                ))
+                            } else {
+                                Err(SyntaxError::new(format!("Expected ')' got {token:?}")))
+                            }
+                            None => Err(SyntaxError::new(String::from("Expected ')' got nothing.")))
+                        }
+                    },
+                    ")" => Ok(left),
+                    _ => Err(SyntaxError::new(String::from("??")))  // means we would have a tokenization problem...
+                }
+                _ => Err(SyntaxError::new(format!("unexpected token {token:?}")))
             },
             None => Ok(left),
         }
@@ -184,6 +204,10 @@ impl Parser {
         }
     }
 
+
+    /// # Errors
+    ///
+    /// Will return an error if it fails creating AST from tokens
     pub fn parse(&mut self, line: &[Token]) -> Result<Expression, SyntaxError> {
         self.tokens = TokenStream::new(line.to_vec());
         if let Some(token) = self.tokens.curr() {
@@ -212,5 +236,11 @@ impl Parser {
         } else {
             Ok(Eof)
         }
+    }
+}
+
+impl Default for Parser {
+    fn default() -> Self {
+        Self::new()
     }
 }

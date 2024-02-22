@@ -229,5 +229,20 @@ mod tests {
             let mut parser = Parser::new();
             assert_eq!(parser.parse(&lexer.lex("2(2)").unwrap()).unwrap(), Expression::Multiplication(Box::from(Expression::Literal(2f64)), Box::from(Expression::Literal(2f64))));
         }
+
+        #[test]
+        fn shall_pass_too() {
+            let lexer = Lexer::new();
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lexer.lex("1+(1)").unwrap()).unwrap(), Expression::Addition(Box::from(Expression::Literal(1f64)), Box::from(Expression::ParenthesisExpression(Box::from(Expression::Literal(1f64))))))
+        }
+
+        #[test]
+        fn test() {
+            let lexer = Lexer::new();
+            let mut parser = Parser::new();
+            let res = parser.parse(&lexer.lex("(1 + 2)").unwrap()).unwrap();
+            println!("{:?}", res);
+        }
     }
 }

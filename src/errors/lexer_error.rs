@@ -7,9 +7,10 @@ pub struct LexerError {
 }
 
 impl LexerError {
+    #[must_use]
     pub fn new(message: String) -> LexerError {
         LexerError {
-            message: String::from(message),
+            message,
         }
     }
 }

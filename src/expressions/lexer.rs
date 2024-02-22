@@ -18,6 +18,7 @@ pub mod tokens {
     }
 
     impl Token {
+        #[must_use]
         pub fn new(kind: Kind, raw_value: String, position: usize) -> Self {
             Token {
                 kind,
@@ -34,6 +35,7 @@ pub mod tokens {
     }
 
     impl TokenStream {
+        #[must_use]
         pub(crate) fn new(buffer: Vec<Token>) -> Self {
             Self { buffer, cursor: 0 }
         }
@@ -58,6 +60,9 @@ pub struct Lexer {
 }
 
 impl Lexer {
+    /// # Panics
+    /// Should theorically not panic as the regex compile fine.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             token_regexs: [
@@ -72,6 +77,9 @@ impl Lexer {
         }
     }
 
+    /// # Errors
+    ///
+    /// Will return an error if it fails parsing tokens
     pub fn lex(&self, buffer: &str) -> Result<Vec<Token>, LexerError> {
         let mut token_vector: Vec<Token> = Vec::new();
         let mut cursor: usize = 0;
@@ -104,5 +112,11 @@ impl Lexer {
             }
         }
         Err(LexerError::new(format!("unknown token at position {delta}")))
+    }
+}
+
+impl Default for Lexer {
+    fn default() -> Self {
+        Self::new()
     }
 }

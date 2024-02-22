@@ -7,9 +7,10 @@ pub struct SyntaxError {
 }
 
 impl SyntaxError {
+    #[must_use]
     pub fn new(message: String) -> SyntaxError {
         SyntaxError {
-            message: String::from(message),
+            message,
         }
     }
 }
