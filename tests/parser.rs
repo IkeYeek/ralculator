@@ -215,5 +215,19 @@ mod tests {
             let mut parser = Parser::new();
             assert_eq!(parser.parse(&lexer.lex("").unwrap()).unwrap(), Expression::Eof);
         }
+
+        #[test]
+        fn syntax_error() {
+            let lexer = Lexer::new();
+            let mut parser = Parser::new();
+            assert!(parser.parse(&lexer.lex("1(").unwrap()).is_err())
+        }
+
+        #[test]
+        fn shall_pass() {
+            let lexer = Lexer::new();
+            let mut parser = Parser::new();
+            assert_eq!(parser.parse(&lexer.lex("2(2)").unwrap()).unwrap(), Expression::Multiplication(Box::from(Expression::Literal(2f64)), Box::from(Expression::Literal(2f64))));
+        }
     }
 }

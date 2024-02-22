@@ -2,21 +2,21 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
-pub struct ParserError {
+pub struct SyntaxError {
     message: String,
 }
 
-impl ParserError {
-    pub fn new(message: String) -> ParserError {
-        ParserError {
+impl SyntaxError {
+    pub fn new(message: String) -> SyntaxError {
+        SyntaxError {
             message: String::from(message),
         }
     }
 }
 
-impl Error for ParserError {}
+impl Error for SyntaxError {}
 
-impl fmt::Display for ParserError {
+impl fmt::Display for SyntaxError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "MyError: {}", self.message)
     }

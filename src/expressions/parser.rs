@@ -1,4 +1,4 @@
-use crate::errors::parser_error::ParserError;
+use crate::errors::parser_error::SyntaxError;
 use crate::expressions::lexer::tokens::Kind::{Operator, Separator};
 use crate::expressions::lexer::tokens::{Kind, Token, TokenStream};
 use crate::expressions::parser::ast::Expression;
@@ -37,7 +37,7 @@ impl Parser {
         }
     }
 
-    fn parse_factor(&mut self) -> Result<Expression, ParserError> {
+    fn parse_factor(&mut self) -> Result<Expression, SyntaxError> {
         match self.tokens.curr() {
             Some(token) => match token.kind {
                 Operator => match token.raw_value.as_str() {
@@ -49,13 +49,13 @@ impl Parser {
                         self.tokens.next();
                         Ok(UnaryMinus(Box::new(self.parse_factor()?)))
                     }
-                    _ => Err(ParserError::new(format!("Unexpected operator {token:?}"))),
+                    _ => Err(SyntaxError::new(format!("Unexpected operator {token:?}"))),
                 },
                 Kind::Literal => {
                     let literal_value = token
                         .raw_value
                         .parse::<f64>()
-                        .map_err(|_| ParserError::new(String::from("Couldn't parse token to an integer")))?;
+                        .map_err(|_| SyntaxError::new(String::from("Couldn't parse token to an integer")))?;
                     self.tokens.next();
                     Ok(Literal(literal_value))
                 }
@@ -66,7 +66,7 @@ impl Parser {
                         self.tokens.next();
                         res
                     } else {
-                        Err(ParserError::new(format!("Couldn't find symbol {}", token.raw_value)))
+                        Err(SyntaxError::new(format!("Couldn't find symbol {}", token.raw_value)))
                     }
                 }
                 Separator => {
@@ -79,24 +79,24 @@ impl Parser {
                                     self.tokens.next();
                                     Ok(Expression::ParenthesisExpression(Box::new(expr)))
                                 } else {
-                                    Err(ParserError::new(format!(
+                                    Err(SyntaxError::new(format!(
                                         "Expected ')', got {:?}, which is definitely not ')'",
                                         token.raw_value
                                     )))
                                 }
                             }
-                            None => Err(ParserError::new(String::from("Expected ')', got nothing bruuuuh"))),
+                            None => Err(SyntaxError::new(String::from("Expected ')', got nothing bruuuuh"))),
                         }
                     } else {
-                        Err(ParserError::new(format!("Expected a '(' got {:?}", token.raw_value)))
+                        Err(SyntaxError::new(format!("Expected a '(' got {:?}", token.raw_value)))
                     }
                 }
             },
-            None => Err(ParserError::new(String::from("Expected a factor, got nothing"))),
+            None => Err(SyntaxError::new(String::from("Expected a factor, got nothing"))),
         }
     }
 
-    fn parse_term_prime(&mut self, left: Expression) -> Result<Expression, ParserError> {
+    fn parse_term_prime(&mut self, left: Expression) -> Result<Expression, SyntaxError> {
         match self.tokens.curr() {
             Some(token) => match token.kind {
                 Operator => match token.raw_value.as_str() {
@@ -124,12 +124,12 @@ impl Parser {
         }
     }
 
-    fn parse_term(&mut self) -> Result<Expression, ParserError> {
+    fn parse_term(&mut self) -> Result<Expression, SyntaxError> {
         self.parse_factor()
             .and_then(|factor| self.parse_term_prime(factor))
     }
 
-    fn parse_expr_prime(&mut self, left: Expression) -> Result<Expression, ParserError> {
+    fn parse_expr_prime(&mut self, left: Expression) -> Result<Expression, SyntaxError> {
         match self.tokens.curr() {
             Some(token) => match token.kind {
                 Operator => match token.raw_value.as_str() {
@@ -154,12 +154,12 @@ impl Parser {
         }
     }
 
-    fn parse_expr(&mut self) -> Result<Expression, ParserError> {
+    fn parse_expr(&mut self) -> Result<Expression, SyntaxError> {
         self.parse_term()
             .and_then(|term| self.parse_expr_prime(term))
     }
 
-    fn parse_assignment(&mut self) -> Result<Expression, ParserError> {
+    fn parse_assignment(&mut self) -> Result<Expression, SyntaxError> {
         match self.tokens.curr() {
             Some(idt_token) if idt_token.kind == Kind::Identifier => {
                 let idt_token_clone = idt_token.clone();
@@ -177,14 +177,14 @@ impl Parser {
                                 Box::new(self.parse_expr()?),
                             ))
                         }
-                    _ => Err(ParserError::new(String::from("Expected an = after the identifier"))),
+                    _ => Err(SyntaxError::new(String::from("Expected an = after the identifier"))),
                 }
             }
-            _ => Err(ParserError::new(String::from("Expected an identifier"))),
+            _ => Err(SyntaxError::new(String::from("Expected an identifier"))),
         }
     }
 
-    pub fn parse(&mut self, line: &[Token]) -> Result<Expression, ParserError> {
+    pub fn parse(&mut self, line: &[Token]) -> Result<Expression, SyntaxError> {
         self.tokens = TokenStream::new(line.to_vec());
         if let Some(token) = self.tokens.curr() {
             match token.kind {
@@ -197,7 +197,7 @@ impl Parser {
                                 self.parse_expr()
                             }
                         }
-                        _ => Err(ParserError::new(format!(
+                        _ => Err(SyntaxError::new(format!(
                             "Expected calculus or assignment operator, got {token:?}"
                         ))),
                     },
@@ -206,7 +206,7 @@ impl Parser {
                 Separator | Kind::Literal => self.parse_expr(),
                 Operator => match token.raw_value.as_str() {
                     "+" | "-" => self.parse_expr(),
-                    _ => Err(ParserError::new(format!("Expected + or -, got {token:?}"))),
+                    _ => Err(SyntaxError::new(format!("Expected + or -, got {token:?}"))),
                 },
             }
         } else {
